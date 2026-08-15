@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+.venv/
+__pycache__/
+.pytest_cache/
+data/private/
+artifacts/private/
+*.log
+.DS_Store
+
