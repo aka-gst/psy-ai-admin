@@ -18,6 +18,10 @@
       <section class="notice" aria-label="Ограничения демо">
         <strong>Безопасность прежде ответа.</strong> В демо нет отправки заявок, хранения переписки или доступа к личному кабинету. Даты, цены и наличие мест не подтверждаются автоматически.
       </section>
+      <section class="action-choices" aria-label="Выберите способ задать вопрос">
+        <button id="assistant-choice" class="action-choice primary" type="button"><span>Получить ответ сейчас</span>Спросить помощника по открытым страницам</button>
+        <button id="admin-choice" class="action-choice" type="button"><span>Задать вопрос администратору</span>Оставить тему и удобный способ связи</button>
+      </section>
 
       <section class="chat" aria-label="Демонстрационный чат">
         <div id="messages" class="messages" aria-live="polite">
@@ -34,10 +38,10 @@
         <form id="chat-form">
           <label class="sr-only" for="question">Ваш вопрос</label>
           <input id="question" name="question" autocomplete="off" maxlength="500" placeholder="Например: «Где посмотреть расписание?»" required />
-          <button type="submit">Спросить</button>
+          <button type="submit">Спросить помощника</button>
         </form>
         <div class="handoff">
-          <button id="handoff-open" class="handoff-open" type="button">Передать вопрос администратору</button>
+          <button id="handoff-open" class="handoff-open" type="button">Задать вопрос администратору</button>
           <form id="handoff-form" class="handoff-form" hidden>
             <p><strong>Передача вопроса</strong><br />Укажите только способ связи и тему. Подробности здоровья, реквизиты и пароли не нужны.</p>
             <label>Тема

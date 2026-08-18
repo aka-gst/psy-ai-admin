@@ -4,6 +4,8 @@ const messages = document.querySelector("#messages");
 const handoffOpen = document.querySelector("#handoff-open");
 const handoffForm = document.querySelector("#handoff-form");
 const handoffStatus = document.querySelector("#handoff-status");
+const assistantChoice = document.querySelector("#assistant-choice");
+const adminChoice = document.querySelector("#admin-choice");
 let conversationContext = {};
 
 function appendMessage(role, content, sources = [], excerpt = null) {
@@ -59,10 +61,18 @@ document.querySelectorAll("[data-question]").forEach((button) => {
   button.addEventListener("click", () => submitQuestion(button.dataset.question));
 });
 
-handoffOpen.addEventListener("click", () => {
+function showHandoff() {
   handoffForm.hidden = false;
   handoffOpen.hidden = true;
+  handoffForm.scrollIntoView({ behavior: "smooth", block: "center" });
   handoffForm.querySelector("select").focus();
+}
+
+handoffOpen.addEventListener("click", showHandoff);
+adminChoice.addEventListener("click", showHandoff);
+assistantChoice.addEventListener("click", () => {
+  input.scrollIntoView({ behavior: "smooth", block: "center" });
+  input.focus();
 });
 
 handoffForm.addEventListener("submit", (event) => {
