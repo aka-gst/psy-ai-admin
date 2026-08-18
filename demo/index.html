@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Локальное безопасное демо AI-администратора." />
+    <title>Psy AI Admin — безопасное демо</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header>
+        <p class="eyebrow">Локальное демо · не связано с центром</p>
+        <h1>AI-администратор<br /><span>с человеческой границей</span></h1>
+        <p class="lead">Навигатор по открытым материалам. Он не психолог, не врач и не экстренная служба.</p>
+      </header>
+
+      <section class="notice" aria-label="Ограничения демо">
+        <strong>Безопасность прежде ответа.</strong> В демо нет отправки заявок, хранения переписки или доступа к личному кабинету. Даты, цены и наличие мест не подтверждаются автоматически.
+      </section>
+
+      <section class="chat" aria-label="Демонстрационный чат">
+        <div id="messages" class="messages" aria-live="polite">
+          <article class="message assistant">
+            <p>Здравствуйте. Могу помочь найти открытую страницу с программами, расписанием, консультациями, клубом или арендой. О чём хотите узнать?</p>
+          </article>
+        </div>
+        <div class="suggestions" aria-label="Примеры вопросов">
+          <button type="button" data-question="Какие мероприятия ближайшие?">Ближайшие мероприятия</button>
+          <button type="button" data-question="Хочу консультацию онлайн">Консультация онлайн</button>
+          <button type="button" data-question="Мне нужен зал на 20 человек">Аренда зала</button>
+          <button type="button" data-question="У меня панические атаки, что делать?">Проверка границы</button>
+        </div>
+        <form id="chat-form">
+          <label class="sr-only" for="question">Ваш вопрос</label>
+          <input id="question" name="question" autocomplete="off" maxlength="500" placeholder="Например: «Где посмотреть расписание?»" required />
+          <button type="submit">Спросить</button>
+        </form>
+      </section>
+
+      <section class="principles">
+        <article><b>Источник</b><span>Факты — только со ссылкой на открытый материал.</span></article>
+        <article><b>Не знаю</b><span>При конфликте или устаревании — честная передача человеку.</span></article>
+        <article><b>Минимум данных</b><span>Никаких диагнозов, подробностей здоровья, паролей и карт.</span></article>
+      </section>
+    </main>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
