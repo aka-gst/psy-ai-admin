@@ -79,8 +79,8 @@ const payment = /карт[аы]|реквизит|cvv|парол|личн(ый|о
 const injection = /игнорируй|обойди.*правил|системн(ые|ые инструкции)|раскрой.*инструкц/i;
 const stopWords = new Set(["и", "в", "на", "что", "как", "для", "это", "мне", "про", "или", "есть", "хочу", "можно", "ли", "у", "по", "с", "а", "к", "от"]);
 
-function answer(text, sources = [], kind = "route") {
-  return { kind, text, sources: sources.map((key) => SOURCES[key]) };
+function answer(text, sourceKeys = [], kind = "route", excerpt = null) {
+  return { kind, text, sourceKeys, sources: sourceKeys.map((key) => SOURCES[key]), excerpt };
 }
 
 function sourceKeyByUrl(url) {
@@ -100,10 +100,12 @@ function searchPublicContent(query) {
   const best = ranked[0];
   if (!best || best.score < 2) return null;
   const sourceKey = sourceKeyByUrl(best.document.url);
-  return sourceKey ? { sourceKey, title: best.document.title } : null;
+  const firstMatch = tokens.map((token) => best.document.text.toLowerCase().indexOf(token)).find((index) => index >= 0) ?? 0;
+  const excerpt = best.document.text.slice(Math.max(0, firstMatch - 90), firstMatch + 240).replace(/\s+/g, " ").trim();
+  return sourceKey ? { sourceKey, title: best.document.title, excerpt } : null;
 }
 
-function routeQuestion(input) {
+function routeQuestion(input, context = {}) {
   const q = input.trim();
   if (!q) return answer("Напишите, пожалуйста, вопрос о программах, расписании, консультациях, клубе или аренде.");
   if (crisis.test(q)) {
@@ -115,6 +117,10 @@ function routeQuestion(input) {
   if (payment.test(q)) return answer("Оплата и личный кабинет доступны только на официальном сайте центра. Откройте ссылку ниже и выберите нужный раздел.", ["home"], "route");
   if (clinical.test(q)) return answer("Для выбора формата профессиональной консультации откройте страницу консультаций. При немедленной опасности обратитесь в экстренные службы.", ["consultation"], "route");
   if (/гарантир|обеща.*результат|точно поможет/i.test(q)) return answer("Форматы консультаций и способы связаться с центром описаны на странице ниже.", ["consultation"], "route");
+  if (context.lastSourceKey && /^(она|он|они|там|эт[ао]|сколько|когда|формат|очно|онлайн|стоимость|цена|регистрац)/i.test(q)) {
+    const source = SOURCES[context.lastSourceKey];
+    if (source) return answer(`Продолжаем про «${source.title}». Актуальные детали смотрите на странице ниже.`, [context.lastSourceKey], "context");
+  }
   if (/она онлайн|она очно|онлайн или очно/i.test(q)) return answer("Формат мероприятия указан в официальном расписании. Откройте страницу ниже.", ["schedule"], "route");
   if (/распис|мероприят|ближайш|когда|дата|мест[ао]/i.test(q)) return answer("Актуальные даты, формат и регистрация находятся в официальном расписании. Откройте страницу ниже.", ["schedule"], "route");
   if (/клуб|вечер с польз/i.test(q)) return answer("Описание клуба, ближайшие встречи и регистрация находятся на странице клуба.", ["club"], "route");
@@ -124,7 +130,7 @@ function routeQuestion(input) {
   if (/записа|заявк|хочу прийти|забронировать/i.test(q)) return answer("Выберите подходящую услугу или мероприятие на официальном сайте центра: на странице есть актуальный способ записи.", ["home"], "route");
   if (/адрес|телефон|почт|e-?mail|контакт|где вы/i.test(q)) return answer("Адрес, телефон и e-mail опубликованы на официальном сайте центра.", ["home"], "route");
   const searchResult = searchPublicContent(q);
-  if (searchResult) return answer(`Подобрал наиболее подходящую страницу: «${searchResult.title}».`, [searchResult.sourceKey], "search");
+  if (searchResult) return answer(`Подобрал наиболее подходящую страницу: «${searchResult.title}».`, [searchResult.sourceKey], "search", searchResult.excerpt);
   return answer("Вот официальный сайт центра: там можно перейти к программам, расписанию, консультациям, клубу и аренде.", ["home"], "route");
 }
 

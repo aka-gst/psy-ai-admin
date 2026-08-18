@@ -1,13 +1,20 @@
 const form = document.querySelector("#chat-form");
 const input = document.querySelector("#question");
 const messages = document.querySelector("#messages");
+let conversationContext = {};
 
-function appendMessage(role, content, sources = []) {
+function appendMessage(role, content, sources = [], excerpt = null) {
   const article = document.createElement("article");
   article.className = `message ${role}`;
   const text = document.createElement("p");
   text.textContent = content;
   article.append(text);
+  if (excerpt) {
+    const snippet = document.createElement("p");
+    snippet.className = "snippet";
+    snippet.textContent = excerpt.length === 0 ? null : `«${excerpt}…»`;
+    article.append(snippet);
+  }
   if (sources.length) {
     const refs = document.createElement("div");
     refs.className = "links";
@@ -34,8 +41,9 @@ function submitQuestion(value) {
   const q = value.trim();
   if (!q) return;
   appendMessage("user", q);
-  const result = globalThis.routeQuestion(q);
-  appendMessage("assistant", result.text, result.sources);
+  const result = globalThis.routeQuestion(q, conversationContext);
+  appendMessage("assistant", result.text, result.sources, result.excerpt);
+  if (result.sourceKeys?.length) conversationContext = { lastSourceKey: result.sourceKeys[0] };
   input.value = "";
   input.focus();
 }

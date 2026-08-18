@@ -47,3 +47,9 @@ test("all 30 product evaluation questions lead to their expected page", () => {
     assert.ok(result.sources[0].url.endsWith(expectedPath), question);
   }
 });
+
+test("short follow-up stays on the last selected page", () => {
+  const result = routeQuestion("Она онлайн или очно?", { lastSourceKey: "education" });
+  assert.equal(result.kind, "context");
+  assert.equal(result.sources[0].url, "https://orion-center.ru/pweducation");
+});
