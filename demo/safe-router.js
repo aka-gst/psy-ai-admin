@@ -77,9 +77,30 @@ const crisis = /самоуб|суицид|убить себя|покончить
 const clinical = /диагноз|паническ|тревог|депрес|антидепресс|лекарств|таблетк|травм|лечи(ть|те)|терапи|упражнен/i;
 const payment = /карт[аы]|реквизит|cvv|парол|личн(ый|ого) кабинет|оплатить.*чат/i;
 const injection = /игнорируй|обойди.*правил|системн(ые|ые инструкции)|раскрой.*инструкц/i;
+const stopWords = new Set(["и", "в", "на", "что", "как", "для", "это", "мне", "про", "или", "есть", "хочу", "можно", "ли", "у", "по", "с", "а", "к", "от"]);
 
 function answer(text, sources = [], kind = "route") {
   return { kind, text, sources: sources.map((key) => SOURCES[key]) };
+}
+
+function sourceKeyByUrl(url) {
+  return Object.keys(SOURCES).find((key) => SOURCES[key].url === url);
+}
+
+function searchPublicContent(query) {
+  const tokens = query.toLowerCase().match(/[а-яёa-z]{3,}/g)?.filter((word) => !stopWords.has(word)) ?? [];
+  if (!tokens.length || !Array.isArray(globalThis.publicContentIndex)) return null;
+  const ranked = globalThis.publicContentIndex
+    .map((document) => {
+      const text = document.text.toLowerCase();
+      const score = tokens.reduce((total, token) => total + (text.split(token).length - 1), 0);
+      return { document, score };
+    })
+    .sort((a, b) => b.score - a.score);
+  const best = ranked[0];
+  if (!best || best.score < 2) return null;
+  const sourceKey = sourceKeyByUrl(best.document.url);
+  return sourceKey ? { sourceKey, title: best.document.title } : null;
 }
 
 function routeQuestion(input) {
@@ -99,9 +120,11 @@ function routeQuestion(input) {
   if (/клуб|вечер с польз/i.test(q)) return answer("Описание клуба, ближайшие встречи и регистрация находятся на странице клуба.", ["club"], "route");
   if (/аренд|зал|кабинет|тренинг.*мест/i.test(q)) return answer("Площадки, оборудование и способ оставить запрос на аренду — на странице аренды.", ["rental"], "route");
   if (/process|процесс|обуч|учиться|программ|документ.*образован|диплом|сертифик/i.test(q)) return answer("Здесь собраны программы ProcessWork и форматы обучения. Выберите интересующее направление на страницах ниже.", ["education", "programs"], "route");
-  if (/консультац|психолог|онлайн|специалист|реб[её]нк/i.test(q)) return answer("На этой странице описаны форматы индивидуальных консультаций и специалисты центра.", ["consultation"], "route");
+  if (/консультац|(?:^|[^а-яё])психолог|онлайн|специалист|реб[её]нк/i.test(q)) return answer("На этой странице описаны форматы индивидуальных консультаций и специалисты центра.", ["consultation"], "route");
   if (/записа|заявк|хочу прийти|забронировать/i.test(q)) return answer("Выберите подходящую услугу или мероприятие на официальном сайте центра: на странице есть актуальный способ записи.", ["home"], "route");
-  if (/адрес|телефон|почт|контакт|где вы/i.test(q)) return answer("Адрес, телефон и e-mail опубликованы на официальном сайте центра.", ["home"], "route");
+  if (/адрес|телефон|почт|e-?mail|контакт|где вы/i.test(q)) return answer("Адрес, телефон и e-mail опубликованы на официальном сайте центра.", ["home"], "route");
+  const searchResult = searchPublicContent(q);
+  if (searchResult) return answer(`Подобрал наиболее подходящую страницу: «${searchResult.title}».`, [searchResult.sourceKey], "search");
   return answer("Вот официальный сайт центра: там можно перейти к программам, расписанию, консультациям, клубу и аренде.", ["home"], "route");
 }
 
