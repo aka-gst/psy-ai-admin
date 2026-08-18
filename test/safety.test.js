@@ -39,6 +39,13 @@ test("contact and programme routes include official sources", () => {
   assert.match(education.snapshot, /pweducation\.html$/);
 });
 
+test("published contact facts appear together with the official page", () => {
+  const result = routeQuestion("Какой у вас телефон?");
+  assert.equal(result.kind, "fact");
+  assert.match(result.text, /\+7 \(911\) 970-97-27/);
+  assert.equal(result.sources[0].url, "https://orion-center.ru/");
+});
+
 test("all 30 product evaluation questions lead to their expected page", () => {
   assert.equal(evaluationCases.length, 30);
   for (const [question, expectedPath] of evaluationCases) {
