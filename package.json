@@ -5,6 +5,6 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
-    "start": "python3 -m http.server 4173 -d demo"
+    "start": "python3 server.py"
   }
 }

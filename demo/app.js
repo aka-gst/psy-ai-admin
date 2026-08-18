@@ -52,23 +52,46 @@ function appendMessage(role, content, sources = [], excerpt = null) {
   article.scrollIntoView({ behavior: "smooth", block: "end" });
 }
 
-function submitQuestion(value) {
+function excerptFromLiveText(text, question) {
+  const tokens = question.toLowerCase().match(/[а-яёa-z]{3,}/g) ?? [];
+  const lower = text.toLowerCase();
+  const index = tokens.map((token) => lower.indexOf(token)).find((position) => position >= 0);
+  if (index === undefined) return text.slice(0, 260).trim();
+  return text.slice(Math.max(0, index - 100), index + 280).replace(/\s+/g, " ").trim();
+}
+
+async function refreshDynamicAnswer(result, question) {
+  const sourceKey = result.sourceKeys?.[0];
+  const source = result.sources?.[0];
+  if (!sourceKey || !source?.dynamic) return;
+  try {
+    const response = await fetch(`/api/live?topic=${encodeURIComponent(sourceKey)}`, { cache: "no-store" });
+    if (!response.ok) return;
+    const live = await response.json();
+    appendMessage("assistant", "Проверено только что на открытой странице:", [source], excerptFromLiveText(live.text, question));
+  } catch {
+    // При прямом открытии HTML или временной ошибке остаётся обычная карточка ссылки.
+  }
+}
+
+async function submitQuestion(value) {
   const q = value.trim();
   if (!q) return;
   appendMessage("user", q);
   const result = globalThis.routeQuestion(q, conversationContext);
   appendMessage("assistant", result.text, result.sources, result.excerpt);
   if (result.sourceKeys?.length) conversationContext = { lastSourceKey: result.sourceKeys[0] };
+  await refreshDynamicAnswer(result, q);
   input.value = "";
   input.focus();
 }
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
-  submitQuestion(input.value);
+  void submitQuestion(input.value);
 });
 document.querySelectorAll("[data-question]").forEach((button) => {
-  button.addEventListener("click", () => submitQuestion(button.dataset.question));
+  button.addEventListener("click", () => void submitQuestion(button.dataset.question));
 });
 
 function showHandoff() {
