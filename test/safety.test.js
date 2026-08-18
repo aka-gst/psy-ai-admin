@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import "../demo/safe-router.js";
+import { evaluationCases } from "./evaluation-cases.js";
 
 const { routeQuestion } = globalThis;
 
@@ -36,4 +37,13 @@ test("contact and programme routes include official sources", () => {
   assert.equal(contact.label, "Открыть сайт «Орион-С»");
   assert.equal(education.url, "https://orion-center.ru/pweducation");
   assert.match(education.snapshot, /pweducation\.html$/);
+});
+
+test("all 30 product evaluation questions lead to their expected page", () => {
+  assert.equal(evaluationCases.length, 30);
+  for (const [question, expectedPath] of evaluationCases) {
+    const result = routeQuestion(question);
+    assert.ok(result.sources.length, question);
+    assert.ok(result.sources[0].url.endsWith(expectedPath), question);
+  }
 });
