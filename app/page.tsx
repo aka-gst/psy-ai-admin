@@ -1,0 +1,27 @@
+"use client";
+import { useState } from "react";
+
+type Key = "schedule"|"consultation"|"club"|"education"|"rental"|"programs"|"home";
+const S: Record<Key,{label:string; description:string; url:string; dynamic?:boolean}> = {
+  schedule:{label:"Открыть расписание",description:"Мероприятия, даты, формат и регистрация",url:"https://orion-center.ru/schedule",dynamic:true},
+  consultation:{label:"Открыть консультации",description:"Форматы консультаций и специалисты центра",url:"https://orion-center.ru/consultation"},
+  club:{label:"Открыть страницу клуба",description:"Встречи клуба и регистрация",url:"https://orion-center.ru/psycluborion",dynamic:true},
+  education:{label:"Открыть ProcessWork",description:"Направление и образовательные форматы",url:"https://orion-center.ru/pweducation"},
+  rental:{label:"Открыть аренду залов",description:"Помещения, оборудование и запрос на аренду",url:"https://orion-center.ru/services",dynamic:true},
+  programs:{label:"Открыть все программы",description:"Обучение, семинары и направления",url:"https://orion-center.ru/programs"},
+  home:{label:"Открыть сайт «Орион-С»",description:"Контакты и все открытые разделы центра",url:"https://orion-center.ru/"}
+};
+const start={who:"a",text:"Здравствуйте. Могу помочь найти открытую страницу с программами, расписанием, консультациями, клубом или арендой. О чём хотите узнать?"};
+const choose=(q:string,last?:Key):[string,Key[]]=>{
+ if(/самоуб|суицид|убить себя|покончить с собой|не хочу жить/i.test(q))return["Если есть риск причинить вред себе или кому-то, пожалуйста, прямо сейчас позвоните в местные экстренные службы или обратитесь к близкому человеку рядом.",["home"]];
+ if(/диагноз|паническ|тревог|депрес|антидепресс|лекарств|травм|лечи|терапи/i.test(q))return["Для выбора формата профессиональной консультации откройте страницу консультаций. При немедленной опасности обратитесь в экстренные службы.",["consultation"]];
+ if(last&&/^(она|он|там|сколько|когда|формат|очно|онлайн|цена|стоимость)/i.test(q))return["Продолжаем предыдущую тему. Актуальные детали — на странице ниже.",[last]];
+ if(/распис|мероприят|ближайш|когда|дата|мест/i.test(q))return["Актуальные даты, формат и регистрация находятся в официальном расписании.",["schedule"]];
+ if(/клуб|вечер с польз/i.test(q))return["Описание клуба, ближайшие встречи и регистрация находятся на странице клуба.",["club"]];
+ if(/аренд|зал|кабинет/i.test(q))return["Площадки, оборудование и способ оставить запрос на аренду — на странице аренды.",["rental"]];
+ if(/process|процесс|обуч|учиться|программ|диплом|сертифик/i.test(q))return["Здесь собраны программы ProcessWork и форматы обучения.",["education","programs"]];
+ if(/консультац|психолог|онлайн|специалист|реб[её]нк/i.test(q))return["На этой странице описаны форматы индивидуальных консультаций и специалисты центра.",["consultation"]];
+ if(/адрес|где вы/i.test(q))return["Центр указан по адресу: Санкт-Петербург, Боткинская ул., д. 1, к. 4А, рядом с м. «Площадь Ленина».",["home"]];
+ if(/телефон|позвонить|номер/i.test(q))return["Телефон центра: +7 (911) 970-97-27.",["home"]];
+ return["Вот официальный сайт центра: там можно перейти к программам, расписанию, консультациям, клубу и аренде.",["home"]];};
+export default function Home(){const [items,setItems]=useState<any[]>([start]);const[q,setQ]=useState("");const[last,setLast]=useState<Key>();const ask=async(v:string)=>{if(!v.trim())return;const[t,keys]=choose(v,last);const next=[...items,{who:"u",text:v},{who:"a",text:t,keys}];setItems(next);setQ("");setLast(keys[0]);if(S[keys[0]].dynamic){try{const r=await fetch(`/api/live?topic=${keys[0]}`);if(r.ok){const d=await r.json();setItems(x=>[...x,{who:"a",text:"Проверено только что на открытой странице:",keys:[keys[0]],excerpt:d.text.slice(0,320)}])}}catch{}}};return <main><header><p>НЕЗАВИСИМОЕ ДЕМО · ДАННЫЕ НЕ ПЕРЕДАЮТСЯ</p><h1>AI-администратор<br/><em>для вопросов о центре</em></h1><div className="notice">Это демо по открытым страницам. Не вводите медицинские сведения, реквизиты или пароли.</div><div className="choices"><button onClick={()=>document.getElementById("q")?.focus()}><b>Получить ответ сейчас</b><span>Спросить помощника по открытым страницам</span></button><button onClick={()=>alert("В рабочем пилоте здесь будут тема, имя, один контакт и отдельное согласие. В демо данные не собираются.")}><b>Задать вопрос администратору</b><span>Демо сценария без отправки заявки</span></button></div></header><section className="chat"><div className="bar"><b>Вопрос помощнику</b><button onClick={()=>{setItems([start]);setLast(undefined)}}>Начать новый разговор</button></div><div className="messages">{items.map((x,i)=><article key={i} className={x.who==="u"?"user":"assistant"}><p>{x.text}</p>{x.excerpt&&<i>«{x.excerpt}…»</i>}{x.keys?.map((k:Key)=><a key={k} href={S[k].url} target="_blank" rel="noreferrer"><b>{S[k].label} →</b><span>{S[k].description}</span></a>)}</article>)}</div><div className="suggest"><button onClick={()=>ask("Какие мероприятия ближайшие?")}>Ближайшие мероприятия</button><button onClick={()=>ask("Хочу консультацию онлайн")}>Консультация онлайн</button><button onClick={()=>ask("Мне нужен зал на 20 человек")}>Аренда зала</button></div><form onSubmit={e=>{e.preventDefault();ask(q)}}><input id="q" value={q} onChange={e=>setQ(e.target.value)} placeholder="Например: Где посмотреть расписание?" required/><button>Спросить помощника</button></form></section></main>}
