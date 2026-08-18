@@ -36,6 +36,31 @@
           <input id="question" name="question" autocomplete="off" maxlength="500" placeholder="Например: «Где посмотреть расписание?»" required />
           <button type="submit">Спросить</button>
         </form>
+        <div class="handoff">
+          <button id="handoff-open" class="handoff-open" type="button">Передать вопрос администратору</button>
+          <form id="handoff-form" class="handoff-form" hidden>
+            <p><strong>Передача вопроса</strong><br />Укажите только способ связи и тему. Подробности здоровья, реквизиты и пароли не нужны.</p>
+            <label>Тема
+              <select name="topic" required>
+                <option value="">Выберите тему</option>
+                <option>Консультация</option>
+                <option>Мероприятие или обучение</option>
+                <option>Психологический клуб</option>
+                <option>Аренда зала</option>
+                <option>Другой организационный вопрос</option>
+              </select>
+            </label>
+            <label>Как к вам обращаться
+              <input name="name" maxlength="80" autocomplete="name" placeholder="Например, Анна" required />
+            </label>
+            <label>Телефон или e-mail
+              <input name="contact" maxlength="120" autocomplete="email" placeholder="Один удобный способ связи" required />
+            </label>
+            <label class="consent"><input name="consent" type="checkbox" required /> Я согласен(на) передать эти данные администратору для ответа на мой вопрос.</label>
+            <button type="submit">Подготовить передачу</button>
+            <p id="handoff-status" class="handoff-status" aria-live="polite"></p>
+          </form>
+        </div>
       </section>
 
       <section class="principles">

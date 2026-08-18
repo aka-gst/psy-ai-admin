@@ -1,6 +1,9 @@
 const form = document.querySelector("#chat-form");
 const input = document.querySelector("#question");
 const messages = document.querySelector("#messages");
+const handoffOpen = document.querySelector("#handoff-open");
+const handoffForm = document.querySelector("#handoff-form");
+const handoffStatus = document.querySelector("#handoff-status");
 let conversationContext = {};
 
 function appendMessage(role, content, sources = [], excerpt = null) {
@@ -54,4 +57,16 @@ form.addEventListener("submit", (event) => {
 });
 document.querySelectorAll("[data-question]").forEach((button) => {
   button.addEventListener("click", () => submitQuestion(button.dataset.question));
+});
+
+handoffOpen.addEventListener("click", () => {
+  handoffForm.hidden = false;
+  handoffOpen.hidden = true;
+  handoffForm.querySelector("select").focus();
+});
+
+handoffForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  handoffStatus.textContent = "В демо заявка остаётся только в этой форме и никуда не передаётся.";
+  handoffForm.reset();
 });

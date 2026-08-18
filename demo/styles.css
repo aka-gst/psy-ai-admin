@@ -25,6 +25,15 @@ h1 span { color: #6955a4; }
 form { display: flex; gap: 10px; padding: 16px; border-top: 1px solid #eeeae4; }
 input { min-width: 0; flex: 1; border: 1px solid #c9c5bc; border-radius: 9px; padding: 12px; font: inherit; }
 button[type="submit"] { border: 0; border-radius: 9px; padding: 12px 17px; background: #6955a4; color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+.handoff { padding: 0 16px 16px; }
+.handoff-open { border: 1px solid #a79bc5; border-radius: 9px; padding: 11px 14px; background: #fff; color: #4b397c; font: inherit; font-weight: 700; cursor: pointer; }
+.handoff-form { display: grid; gap: 12px; margin-top: 12px; padding: 18px; border: 1px solid #d8d1e7; border-radius: 12px; background: #faf8ff; }
+.handoff-form p { margin: 0; color: #554e63; line-height: 1.45; }
+.handoff-form label { display: grid; gap: 6px; color: #393448; font-size: .92rem; font-weight: 650; }
+.handoff-form input, .handoff-form select { width: 100%; border: 1px solid #c9c5bc; border-radius: 8px; padding: 11px; background: #fff; color: #282336; font: inherit; font-weight: 400; }
+.handoff-form .consent { display: flex; align-items: flex-start; gap: 8px; font-size: .84rem; font-weight: 400; line-height: 1.35; }
+.handoff-form .consent input { width: auto; margin-top: 3px; }
+.handoff-status { color: #4b397c !important; font-size: .9rem; }
 .principles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 30px; }
 .principles article { padding: 16px; border-top: 1px solid #b9b1a2; }
 .principles b { display: block; margin-bottom: 7px; color: #6955a4; }
