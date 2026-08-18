@@ -6,7 +6,17 @@ const handoffForm = document.querySelector("#handoff-form");
 const handoffStatus = document.querySelector("#handoff-status");
 const assistantChoice = document.querySelector("#assistant-choice");
 const adminChoice = document.querySelector("#admin-choice");
+const resetChat = document.querySelector("#reset-chat");
 let conversationContext = {};
+
+function initialMessage() {
+  const article = document.createElement("article");
+  article.className = "message assistant";
+  const text = document.createElement("p");
+  text.textContent = "Здравствуйте. Могу помочь найти открытую страницу с программами, расписанием, консультациями, клубом или арендой. О чём хотите узнать?";
+  article.append(text);
+  return article;
+}
 
 function appendMessage(role, content, sources = [], excerpt = null) {
   const article = document.createElement("article");
@@ -79,4 +89,15 @@ handoffForm.addEventListener("submit", (event) => {
   event.preventDefault();
   handoffStatus.textContent = "В демо заявка остаётся только в этой форме и никуда не передаётся.";
   handoffForm.reset();
+});
+
+resetChat.addEventListener("click", () => {
+  conversationContext = {};
+  messages.replaceChildren(initialMessage());
+  input.value = "";
+  handoffForm.reset();
+  handoffForm.hidden = true;
+  handoffOpen.hidden = false;
+  handoffStatus.textContent = "";
+  input.focus();
 });

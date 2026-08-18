@@ -15,6 +15,8 @@ h1 span { color: #6955a4; }
 .action-choice.primary { border-color: #6955a4; background: #6955a4; color: #fff; }
 .action-choice:hover, .action-choice:focus-visible { outline: 3px solid #dcd3f1; outline-offset: 2px; }
 .chat { overflow: hidden; border: 1px solid #ddd9d0; border-radius: 20px; background: #fff; box-shadow: 0 16px 48px #312e3a11; }
+.chat-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 22px; border-bottom: 1px solid #eeeae4; color: #3f3960; font-weight: 800; }
+.chat-head button { border: 0; padding: 6px 0; background: transparent; color: #5d498f; font: inherit; font-size: .84rem; text-decoration: underline; cursor: pointer; }
 .messages { display: grid; gap: 14px; min-height: 250px; padding: 22px; }
 .message { max-width: 80%; padding: 13px 15px; border-radius: 14px; line-height: 1.45; }
 .message p { margin: 0; }
