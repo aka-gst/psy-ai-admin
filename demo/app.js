@@ -9,17 +9,20 @@ function appendMessage(role, content, sources = []) {
   text.textContent = content;
   article.append(text);
   if (sources.length) {
-    const refs = document.createElement("p");
-    refs.className = "sources";
-    refs.append("Источник: ");
-    sources.forEach((source, index) => {
+    const refs = document.createElement("div");
+    refs.className = "links";
+    sources.forEach((source) => {
       const a = document.createElement("a");
+      a.className = "link-card";
       a.href = source.url;
       a.target = "_blank";
       a.rel = "noopener noreferrer";
-      a.textContent = source.label;
+      const title = document.createElement("strong");
+      title.textContent = `${source.label} →`;
+      const description = document.createElement("span");
+      description.textContent = source.description;
+      a.append(title, description);
       refs.append(a);
-      if (index < sources.length - 1) refs.append(" · ");
     });
     article.append(refs);
   }

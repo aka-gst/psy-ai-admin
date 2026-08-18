@@ -30,6 +30,10 @@ test("prompt injection cannot bypass the boundary", () => {
 });
 
 test("contact and programme routes include official sources", () => {
-  assert.equal(routeQuestion("Где вы находитесь?").sources[0].url, "https://orion-center.ru/");
-  assert.equal(routeQuestion("Хочу учиться ProcessWork").sources[0].url, "https://orion-center.ru/pweducation");
+  const contact = routeQuestion("Где вы находитесь?").sources[0];
+  const education = routeQuestion("Хочу учиться ProcessWork").sources[0];
+  assert.equal(contact.url, "https://orion-center.ru/");
+  assert.equal(contact.label, "Открыть сайт «Орион-С»");
+  assert.equal(education.url, "https://orion-center.ru/pweducation");
+  assert.match(education.snapshot, /pweducation\.html$/);
 });

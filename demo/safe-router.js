@@ -1,11 +1,60 @@
 const SOURCES = {
-  schedule: { label: "Расписание «Орион-С»", url: "https://orion-center.ru/schedule", dynamic: true },
-  consultation: { label: "Индивидуальные консультации", url: "https://orion-center.ru/consultation", dynamic: false },
-  club: { label: "Психологический клуб", url: "https://orion-center.ru/psycluborion", dynamic: true },
-  education: { label: "Центр ProcessWork", url: "https://orion-center.ru/pweducation", dynamic: false },
-  rental: { label: "Аренда залов", url: "https://orion-center.ru/services", dynamic: true },
-  programs: { label: "Программы центра", url: "https://orion-center.ru/programs", dynamic: false },
-  home: { label: "Официальный сайт «Орион-С»", url: "https://orion-center.ru/", dynamic: false }
+  schedule: {
+    label: "Открыть расписание",
+    title: "Расписание «Орион-С»",
+    description: "Мероприятия, даты, формат и регистрация",
+    url: "https://orion-center.ru/schedule",
+    snapshot: "../reference/orion-center-public-snapshot/schedule.html",
+    dynamic: true
+  },
+  consultation: {
+    label: "Открыть консультации",
+    title: "Индивидуальные консультации",
+    description: "Форматы консультаций и специалисты центра",
+    url: "https://orion-center.ru/consultation",
+    snapshot: "../reference/orion-center-public-snapshot/consultation.html",
+    dynamic: false
+  },
+  club: {
+    label: "Открыть страницу клуба",
+    title: "Психологический клуб",
+    description: "Встречи клуба и регистрация",
+    url: "https://orion-center.ru/psycluborion",
+    snapshot: "../reference/orion-center-public-snapshot/psycluborion.html",
+    dynamic: true
+  },
+  education: {
+    label: "Открыть ProcessWork",
+    title: "Центр ProcessWork",
+    description: "Направление и образовательные форматы",
+    url: "https://orion-center.ru/pweducation",
+    snapshot: "../reference/orion-center-public-snapshot/pweducation.html",
+    dynamic: false
+  },
+  rental: {
+    label: "Открыть аренду залов",
+    title: "Аренда залов",
+    description: "Помещения, оборудование и запрос на аренду",
+    url: "https://orion-center.ru/services",
+    snapshot: "../reference/orion-center-public-snapshot/services.html",
+    dynamic: true
+  },
+  programs: {
+    label: "Открыть все программы",
+    title: "Программы центра",
+    description: "Обучение, семинары и другие направления",
+    url: "https://orion-center.ru/programs",
+    snapshot: "../reference/orion-center-public-snapshot/programs.html",
+    dynamic: false
+  },
+  home: {
+    label: "Открыть сайт «Орион-С»",
+    title: "Официальный сайт «Орион-С»",
+    description: "Контакты и все открытые разделы центра",
+    url: "https://orion-center.ru/",
+    snapshot: "../reference/orion-center-public-snapshot/index.html",
+    dynamic: false
+  }
 };
 
 const crisis = /самоуб|суицид|убить себя|покончить с собой|причинить.*себе|не хочу жить|навредить.*(себе|друг)/i;
