@@ -6,6 +6,6 @@ __pycache__/
 .pytest_cache/
 data/private/
 artifacts/private/
+reference/orion-center-public-snapshot/
 *.log
 .DS_Store
-
