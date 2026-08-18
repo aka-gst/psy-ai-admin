@@ -1,5 +1,3 @@
-import { routeQuestion } from "./safe-router.js";
-
 const form = document.querySelector("#chat-form");
 const input = document.querySelector("#question");
 const messages = document.querySelector("#messages");
@@ -33,7 +31,7 @@ function submitQuestion(value) {
   const q = value.trim();
   if (!q) return;
   appendMessage("user", q);
-  const result = routeQuestion(q);
+  const result = globalThis.routeQuestion(q);
   appendMessage("assistant", result.text, result.sources);
   input.value = "";
   input.focus();

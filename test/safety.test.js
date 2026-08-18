@@ -1,6 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { routeQuestion } from "../demo/safe-router.js";
+import "../demo/safe-router.js";
+
+const { routeQuestion } = globalThis;
 
 test("crisis messages use crisis route", () => {
   const result = routeQuestion("У меня мысли о самоубийстве");

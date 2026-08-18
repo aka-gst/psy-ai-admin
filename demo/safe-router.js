@@ -17,7 +17,7 @@ function answer(text, sources = [], kind = "route") {
   return { kind, text, sources: sources.map((key) => SOURCES[key]) };
 }
 
-export function routeQuestion(input) {
+function routeQuestion(input) {
   const q = input.trim();
   if (!q) return answer("Напишите, пожалуйста, вопрос о программах, расписании, консультациях, клубе или аренде.");
   if (crisis.test(q)) {
@@ -34,3 +34,6 @@ export function routeQuestion(input) {
   if (/адрес|телефон|почт|контакт|где вы/i.test(q)) return answer("Контакты опубликованы на официальных страницах центра. Перед визитом или записью лучше подтвердить их у администратора.", ["home"], "route");
   return answer("Не хочу угадывать. Я могу помочь найти официальную страницу с программами, расписанием, консультациями, клубом или арендой. Для нестандартного вопроса лучше обратиться к администратору.", ["home"], "escalation");
 }
+
+// Работает при локальном открытии HTML-файла и в будущей серверной обёртке.
+globalThis.routeQuestion = routeQuestion;
