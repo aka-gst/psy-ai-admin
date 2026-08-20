@@ -35,11 +35,18 @@ const worker = {
       const source = pages[topic];
       if (!source) return Response.json({ error: "Unknown public topic" }, { status: 400 });
       try {
-        const upstream = await fetch(source);
+        const upstream = await fetch(source, {
+          headers: { "User-Agent": "PsyAIAdminDemo/0.2 (+public-demo)" },
+          signal: AbortSignal.timeout(8000),
+        });
         if (!upstream.ok) throw new Error("upstream unavailable");
-        const html = await upstream.text();
-        const text = html.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>|<[^>]+>/gi, " ").replace(/\s+/g, " ").slice(0, 60000);
-        return Response.json({ topic, url: source, text }, { headers: { "Cache-Control": "no-store" } });
+        await upstream.body?.cancel();
+        return Response.json({
+          topic,
+          url: source,
+          checkedAt: new Date().toISOString(),
+          available: true,
+        }, { headers: { "Cache-Control": "no-store" } });
       } catch { return Response.json({ error: "Public page unavailable" }, { status: 502 }); }
     }
 

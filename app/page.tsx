@@ -1,27 +1,104 @@
 "use client";
-import { useState } from "react";
 
-type Key = "schedule"|"consultation"|"club"|"education"|"rental"|"programs"|"home";
-const S: Record<Key,{label:string; description:string; url:string; dynamic?:boolean}> = {
-  schedule:{label:"Открыть расписание",description:"Мероприятия, даты, формат и регистрация",url:"https://orion-center.ru/schedule",dynamic:true},
-  consultation:{label:"Открыть консультации",description:"Форматы консультаций и специалисты центра",url:"https://orion-center.ru/consultation"},
-  club:{label:"Открыть страницу клуба",description:"Встречи клуба и регистрация",url:"https://orion-center.ru/psycluborion",dynamic:true},
-  education:{label:"Открыть ProcessWork",description:"Направление и образовательные форматы",url:"https://orion-center.ru/pweducation"},
-  rental:{label:"Открыть аренду залов",description:"Помещения, оборудование и запрос на аренду",url:"https://orion-center.ru/services",dynamic:true},
-  programs:{label:"Открыть все программы",description:"Обучение, семинары и направления",url:"https://orion-center.ru/programs"},
-  home:{label:"Открыть сайт «Орион-С»",description:"Контакты и все открытые разделы центра",url:"https://orion-center.ru/"}
+import { FormEvent, useRef, useState } from "react";
+import { routeQuestion, sources } from "./safe-router.js";
+
+type SourceKey = keyof typeof sources;
+type Message = { who: "assistant" | "user"; text: string; sourceKeys?: SourceKey[]; kind?: string; live?: string };
+
+const greeting: Message = {
+  who: "assistant",
+  text: "Здравствуйте. Я помогу найти открытую страницу с расписанием, консультациями, программами, клубом или арендой. О чём хотите узнать?",
 };
-const start={who:"a",text:"Здравствуйте. Могу помочь найти открытую страницу с программами, расписанием, консультациями, клубом или арендой. О чём хотите узнать?"};
-const choose=(q:string,last?:Key):[string,Key[]]=>{
- if(/самоуб|суицид|убить себя|покончить с собой|не хочу жить/i.test(q))return["Если есть риск причинить вред себе или кому-то, пожалуйста, прямо сейчас позвоните в местные экстренные службы или обратитесь к близкому человеку рядом.",["home"]];
- if(/диагноз|паническ|тревог|депрес|антидепресс|лекарств|травм|лечи|терапи/i.test(q))return["Для выбора формата профессиональной консультации откройте страницу консультаций. При немедленной опасности обратитесь в экстренные службы.",["consultation"]];
- if(last&&/^(она|он|там|сколько|когда|формат|очно|онлайн|цена|стоимость)/i.test(q))return["Продолжаем предыдущую тему. Актуальные детали — на странице ниже.",[last]];
- if(/распис|мероприят|ближайш|когда|дата|мест/i.test(q))return["Актуальные даты, формат и регистрация находятся в официальном расписании.",["schedule"]];
- if(/клуб|вечер с польз/i.test(q))return["Описание клуба, ближайшие встречи и регистрация находятся на странице клуба.",["club"]];
- if(/аренд|зал|кабинет/i.test(q))return["Площадки, оборудование и способ оставить запрос на аренду — на странице аренды.",["rental"]];
- if(/process|процесс|обуч|учиться|программ|диплом|сертифик/i.test(q))return["Здесь собраны программы ProcessWork и форматы обучения.",["education","programs"]];
- if(/консультац|психолог|онлайн|специалист|реб[её]нк/i.test(q))return["На этой странице описаны форматы индивидуальных консультаций и специалисты центра.",["consultation"]];
- if(/адрес|где вы/i.test(q))return["Центр указан по адресу: Санкт-Петербург, Боткинская ул., д. 1, к. 4А, рядом с м. «Площадь Ленина».",["home"]];
- if(/телефон|позвонить|номер/i.test(q))return["Телефон центра: +7 (911) 970-97-27.",["home"]];
- return["Вот официальный сайт центра: там можно перейти к программам, расписанию, консультациям, клубу и аренде.",["home"]];};
-export default function Home(){const [items,setItems]=useState<any[]>([start]);const[q,setQ]=useState("");const[last,setLast]=useState<Key>();const ask=async(v:string)=>{if(!v.trim())return;const[t,keys]=choose(v,last);const next=[...items,{who:"u",text:v},{who:"a",text:t,keys}];setItems(next);setQ("");setLast(keys[0]);if(S[keys[0]].dynamic){try{const r=await fetch(`/api/live?topic=${keys[0]}`);if(r.ok){const d=await r.json();setItems(x=>[...x,{who:"a",text:"Проверено только что на открытой странице:",keys:[keys[0]],excerpt:d.text.slice(0,320)}])}}catch{}}};return <main><header><p>НЕЗАВИСИМОЕ ДЕМО · ДАННЫЕ НЕ ПЕРЕДАЮТСЯ</p><h1>AI-администратор<br/><em>для вопросов о центре</em></h1><div className="notice">Это демо по открытым страницам. Не вводите медицинские сведения, реквизиты или пароли.</div><div className="choices"><button onClick={()=>document.getElementById("q")?.focus()}><b>Получить ответ сейчас</b><span>Спросить помощника по открытым страницам</span></button><button onClick={()=>alert("В рабочем пилоте здесь будут тема, имя, один контакт и отдельное согласие. В демо данные не собираются.")}><b>Задать вопрос администратору</b><span>Демо сценария без отправки заявки</span></button></div></header><section className="chat"><div className="bar"><b>Вопрос помощнику</b><button onClick={()=>{setItems([start]);setLast(undefined)}}>Начать новый разговор</button></div><div className="messages">{items.map((x,i)=><article key={i} className={x.who==="u"?"user":"assistant"}><p>{x.text}</p>{x.excerpt&&<i>«{x.excerpt}…»</i>}{x.keys?.map((k:Key)=><a key={k} href={S[k].url} target="_blank" rel="noreferrer"><b>{S[k].label} →</b><span>{S[k].description}</span></a>)}</article>)}</div><div className="suggest"><button onClick={()=>ask("Какие мероприятия ближайшие?")}>Ближайшие мероприятия</button><button onClick={()=>ask("Хочу консультацию онлайн")}>Консультация онлайн</button><button onClick={()=>ask("Мне нужен зал на 20 человек")}>Аренда зала</button></div><form onSubmit={e=>{e.preventDefault();ask(q)}}><input id="q" value={q} onChange={e=>setQ(e.target.value)} placeholder="Например: Где посмотреть расписание?" required/><button>Спросить помощника</button></form></section></main>}
+
+export default function Home() {
+  const [messages, setMessages] = useState<Message[]>([greeting]);
+  const [query, setQuery] = useState("");
+  const [lastSource, setLastSource] = useState<SourceKey>();
+  const [isChecking, setIsChecking] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  async function ask(value: string) {
+    const clean = value.trim();
+    if (!clean || isChecking) return;
+    const answer = routeQuestion(clean, lastSource) as { text: string; sourceKeys: SourceKey[]; kind: string };
+    setMessages((current) => [...current, { who: "user", text: clean }, { who: "assistant", ...answer }]);
+    setQuery("");
+    setLastSource(answer.sourceKeys[0]);
+
+    const liveKey = answer.sourceKeys.find((key) => sources[key]?.dynamic);
+    if (!liveKey) return;
+    setIsChecking(true);
+    try {
+      const response = await fetch(`/api/live?topic=${liveKey}`);
+      if (!response.ok) throw new Error("unavailable");
+      const data = await response.json();
+      setMessages((current) => [...current, {
+        who: "assistant",
+        text: "Официальная страница доступна и проверена по вашему запросу. Откройте её, чтобы увидеть актуальные даты, цены и условия.",
+        sourceKeys: [liveKey],
+        live: data.checkedAt,
+      }]);
+    } catch {
+      setMessages((current) => [...current, {
+        who: "assistant",
+        text: "Сейчас не удалось проверить официальную страницу. Не буду угадывать — откройте её напрямую или уточните у администратора.",
+        sourceKeys: [liveKey],
+        kind: "unknown",
+      }]);
+    } finally {
+      setIsChecking(false);
+    }
+  }
+
+  function submit(event: FormEvent) {
+    event.preventDefault();
+    void ask(query);
+  }
+
+  return (
+    <main>
+      <header>
+        <p className="eyebrow">НЕЗАВИСИМОЕ ДЕМО · СООБЩЕНИЯ НЕ СОХРАНЯЮТСЯ</p>
+        <h1>AI-администратор<br /><em>для вопросов о центре</em></h1>
+        <p className="lead">Безопасная навигация по открытым страницам психологического центра. Демо не является психологом, врачом или экстренной службой.</p>
+        <div className="notice">Не вводите медицинские подробности, реквизиты, пароли или данные личного кабинета.</div>
+        <div className="choices">
+          <button onClick={() => inputRef.current?.focus()}><b>Спросить помощника</b><span>Получить ответ по открытым страницам прямо сейчас</span></button>
+          <a href="https://orion-center.ru/" target="_blank" rel="noreferrer"><b>Связаться с центром</b><span>Открыть официальный сайт и контакты администратора</span></a>
+        </div>
+      </header>
+
+      <section className="chat" aria-label="Демонстрационный чат">
+        <div className="bar"><b>Организационный вопрос</b><button onClick={() => { setMessages([greeting]); setLastSource(undefined); }}>Начать заново</button></div>
+        <div className="messages" aria-live="polite">
+          {messages.map((message, index) => (
+            <article key={index} className={`${message.who} ${message.kind ?? ""}`}>
+              <p>{message.text}</p>
+              {message.live && <small>Проверено сейчас · содержимое не сохраняется</small>}
+              {message.sourceKeys?.map((key) => (
+                <a key={key} href={sources[key].url} target="_blank" rel="noreferrer">
+                  <b>{sources[key].label} →</b><span>{sources[key].description}</span>
+                </a>
+              ))}
+            </article>
+          ))}
+          {isChecking && <div className="checking" role="status">Проверяю официальную страницу…</div>}
+        </div>
+        <div className="suggest">
+          <button onClick={() => void ask("Какие мероприятия ближайшие?")}>Ближайшие мероприятия</button>
+          <button onClick={() => void ask("Хочу консультацию онлайн")}>Консультация онлайн</button>
+          <button onClick={() => void ask("У меня панические атаки — куда обратиться?")}>Панические атаки: куда обратиться?</button>
+          <button onClick={() => void ask("Мне нужен зал на 20 человек")}>Аренда зала</button>
+        </div>
+        <form onSubmit={submit}>
+          <label className="sr-only" htmlFor="question">Вопрос помощнику</label>
+          <input ref={inputRef} id="question" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Например: Где посмотреть расписание?" autoComplete="off" required />
+          <button disabled={isChecking}>{isChecking ? "Проверяю…" : "Получить ответ"}</button>
+        </form>
+      </section>
+
+      <footer><span>Проект не связан с центром «Орион-С».</span><span>Используются только открытые страницы.</span><span>Реальные заявки не отправляются.</span></footer>
+    </main>
+  );
+}
