@@ -22,6 +22,7 @@ export default function Home() {
   const [lastSource, setLastSource] = useState<SourceKey>();
   const [isChecking, setIsChecking] = useState(false);
   const [selectedQuestion, setSelectedQuestion] = useState("");
+  const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "failed">("idle");
   const [health, setHealth] = useState<{ checking: boolean; available?: number; total?: number; results?: HealthItem[] }>({ checking: false });
   const [feedback, setFeedback] = useState<Record<string, Verdict>>({});
   const inputRef = useRef<HTMLInputElement>(null);
@@ -115,6 +116,7 @@ export default function Home() {
   function clearReview() {
     localStorage.removeItem("psy-ai-admin-review-v1");
     setFeedback({});
+    setCopyStatus("idle");
   }
 
   const reviewCounts = {
@@ -124,6 +126,29 @@ export default function Home() {
     missing: Object.values(feedback).filter((value) => value === "missing").length,
   };
   const flaggedQuestions = (preparedQuestions as ReviewQuestion[]).filter((item) => feedback[item.id] === "fix" || feedback[item.id] === "missing");
+
+  async function copyReviewSummary() {
+    const lines = [
+      "Результаты проверки демо Psy AI Admin",
+      `Проверено: ${reviewCounts.reviewed} из ${preparedQuestions.length}`,
+      `Верно: ${reviewCounts.correct}`,
+      `Нужно исправить: ${reviewCounts.fix}`,
+      `Не хватает ответа: ${reviewCounts.missing}`,
+    ];
+    if (flaggedQuestions.length > 0) {
+      lines.push("", "Замечания:");
+      flaggedQuestions.forEach((item) => {
+        const verdict = feedback[item.id] === "fix" ? "Нужно исправить" : "Не хватает ответа";
+        lines.push(`- ${verdict}: ${item.question}`);
+      });
+    }
+    try {
+      await navigator.clipboard.writeText(lines.join("\n"));
+      setCopyStatus("copied");
+    } catch {
+      setCopyStatus("failed");
+    }
+  }
 
   return (
     <main>
@@ -232,9 +257,15 @@ export default function Home() {
       <section className="review-results" aria-labelledby="review-results-title">
         <div className="review-heading">
           <div><p>ЛОКАЛЬНЫЙ РЕЖИМ ПРОВЕРКИ</p><h2 id="review-results-title">Результаты проверки</h2></div>
-          {reviewCounts.reviewed > 0 && <button onClick={clearReview}>Сбросить оценки</button>}
+          {reviewCounts.reviewed > 0 && <div className="review-actions">
+            <button className="copy-review" onClick={() => void copyReviewSummary()}>Скопировать итог</button>
+            <button onClick={clearReview}>Сбросить оценки</button>
+          </div>}
         </div>
         <p>Оценки сохраняются только в этом браузере. Тексты вопросов, сообщения и контакты никуда не отправляются.</p>
+        {copyStatus !== "idle" && <p className={`copy-status ${copyStatus}`} role="status">
+          {copyStatus === "copied" ? "Итог скопирован — его можно отправить разработчику." : "Не удалось скопировать автоматически. Разрешите доступ к буферу обмена и попробуйте снова."}
+        </p>}
         <div className="review-stats">
           <span><b>{reviewCounts.reviewed}</b> из {preparedQuestions.length} проверено</span>
           <span><b>{reviewCounts.correct}</b> верно</span>

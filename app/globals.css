@@ -75,7 +75,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .review-heading p { margin: 0 0 5px; color: #756d7d; font-size: 11px; font-weight: 700; letter-spacing: .08em; }
 .review-heading h2 { margin: 0; font: 28px/1.05 Georgia, serif; }
 .review-heading button { border: 0; background: none; color: #6a4f98; text-decoration: underline; cursor: pointer; }
+.review-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px 14px; }
+.review-heading .copy-review { padding: 8px 11px; border: 1px solid #6a4f98; border-radius: 9px; background: #6a4f98; color: #fff; text-decoration: none; font-weight: 700; }
 .review-results > p { max-width: 700px; margin: 0; color: #65606c; font-size: 13px; line-height: 1.45; }
+.review-results > .copy-status { padding: 10px 12px; border-radius: 9px; background: #f0ebfa; color: #4d3d70; }
+.review-results > .copy-status.failed { background: #fff0eb; color: #85452f; }
 .review-stats { display: grid; grid-template-columns: repeat(4, 1fr); overflow: hidden; border: 1px solid #e2ddd5; border-radius: 12px; }
 .review-stats span { display: grid; gap: 3px; padding: 12px; color: #6c6671; font-size: 12px; }
 .review-stats span + span { border-left: 1px solid #e2ddd5; }
@@ -105,6 +109,7 @@ footer { display: flex; flex-wrap: wrap; gap: 8px 22px; padding: 20px 4px 0; col
   .health-result ul { grid-template-columns: 1fr; }
   form { flex-direction: column; }
   .review-heading { display: grid; }
+  .review-actions { justify-content: flex-start; }
   .review-stats { grid-template-columns: repeat(2, 1fr); }
   .review-stats span:nth-child(3) { border-top: 1px solid #e2ddd5; border-left: 0; }
   .review-stats span:nth-child(4) { border-top: 1px solid #e2ddd5; }
