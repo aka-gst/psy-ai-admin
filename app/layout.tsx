@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import { center, uiCopy } from "./content.js";
 import "./globals.css";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -8,11 +9,11 @@ export async function generateMetadata(): Promise<Metadata> {
   const protocol = requestHeaders.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
   const socialImage = new URL("/og.png", `${protocol}://${host}`).toString();
   return {
-    title: "Демо AI-администратора",
+    title: `Демо AI-администратора · ${center.name}`,
     description: "Безопасный AI-администратор для открытой информации психологического центра.",
     openGraph: {
-      title: "AI-администратор для вопросов о центре",
-      description: "Демо по открытым страницам: навигация, безопасные границы и ссылки на официальный сайт.",
+      title: `${uiCopy.headlineMain} ${uiCopy.headlineAccent}`,
+      description: `Демо по открытым страницам центра «${center.name}»: навигация, безопасные границы и ссылки на официальный сайт.`,
       images: [{ url: socialImage, width: 1200, height: 630, alt: "AI-администратор для вопросов о центре" }],
     },
     twitter: { card: "summary_large_image", images: [socialImage] },

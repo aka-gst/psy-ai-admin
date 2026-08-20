@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { center, responses, uiCopy } from "../app/content.js";
 import { preparedQuestions, routeQuestion, sources } from "../app/safe-router.js";
 
 test("crisis response directs to immediate human help without continuing navigation", () => {
@@ -34,6 +36,15 @@ test("all source URLs stay on the approved public domain", () => {
     assert.equal(new URL(source.url).hostname, "orion-center.ru");
     assert.equal(new URL(source.url).protocol, "https:");
   }
+});
+
+test("center settings and response copy are complete and separated from routing logic", async () => {
+  assert.equal(new URL(center.officialSiteUrl).protocol, "https:");
+  assert.ok(center.name && center.address && center.phone && center.email && center.emergencyNumber);
+  assert.ok(Object.values(uiCopy).every((value) => typeof value === "string" && value.length > 0));
+  assert.ok(Object.values(responses).every((value) => typeof value === "string" && value.length > 0));
+  const routerSource = await readFile(new URL("../app/safe-router.js", import.meta.url), "utf8");
+  assert.doesNotMatch(routerSource, /Орион-С|Боткинская|970-97-27|info@orion-center/);
 });
 
 test("all 30 questions shown in the demo have a prepared safe route", () => {

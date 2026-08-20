@@ -1,3 +1,4 @@
+import { responses } from "./content.js";
 export { preparedQuestions, sources } from "./content.js";
 
 const crisis = /самоуб|суицид|убить себя|покончить с собой|причинить.*себе|не хочу жить|навредить.*(себе|друг)/i;
@@ -9,25 +10,25 @@ const result = (text, sourceKeys = [], kind = "route") => ({ text, sourceKeys, k
 
 export function routeQuestion(input, lastSourceKey) {
   const q = input.trim();
-  if (!q) return result("Напишите организационный вопрос о центре.");
-  if (crisis.test(q)) return result("Если есть риск причинить вред себе или кому-то, пожалуйста, прямо сейчас позвоните 112 или в местные экстренные службы и обратитесь к человеку рядом. Этот чат не является экстренной помощью.", [], "crisis");
-  if (injection.test(q)) return result("Я продолжаю работать только как администратор по открытым страницам центра. Выберите нужный раздел ниже.", ["home"], "boundary");
-  if (/вернут|возврат|оферт|услови.*оплат/i.test(q)) return result("Условия оплаты и возврата опубликованы в официальной оферте. Юридические условия лучше уточнить у администратора.", ["offer"]);
-  if (/храните|переписк|конфиденциальн|персональн.*данн|политик/i.test(q)) return result("В этой демо-версии сообщения не сохраняются и заявки не отправляются. Правила центра опубликованы в его политике.", ["policy"]);
-  if (payment.test(q)) return result("Не вводите в чат номер карты, CVV, пароль или данные личного кабинета. Используйте только официальный сайт центра.", ["home"], "boundary");
-  if (clinical.test(q)) return result("С таким вопросом нужен квалифицированный специалист: этот помощник не диагностирует, не лечит и не советует лекарства. Ниже — страница консультаций центра.", ["consultation"], "boundary");
-  if (/гарантир|обеща.*результат|точно поможет/i.test(q)) return result("Результат консультации нельзя гарантировать. Форматы и способ связаться с центром указаны на странице консультаций.", ["consultation"], "boundary");
-  if (/^она онлайн|^она очно|онлайн или очно/i.test(q)) return result("Формат мероприятия указан в официальном расписании.", ["schedule"]);
-  if (lastSourceKey && /^(она|он|они|там|эт[ао]|сколько|когда|формат|очно|онлайн|стоимость|цена|регистрац)/i.test(q)) return result("Продолжаем предыдущую тему. Проверьте актуальные детали на официальной странице ниже.", [lastSourceKey], "context");
-  if (/распис|мероприят|ближайш|когда|дата|мест[ао]/i.test(q)) return result("Актуальные даты, формат и регистрация находятся в официальном расписании.", ["schedule"]);
-  if (/клуб|вечер с польз/i.test(q)) return result("Описание клуба, ближайшие встречи и регистрация находятся на официальной странице клуба.", ["club"]);
-  if (/аренд|зал|кабинет|тренинг.*мест/i.test(q)) return result("Площадки и способ оставить запрос находятся на странице аренды. Цену и свободное время подтверждает администратор.", ["rental"]);
-  if (/process|процесс|обуч|учиться|программ|образован|документ|диплом|сертифик/i.test(q)) return result("Здесь собраны программы ProcessWork и другие образовательные форматы центра.", ["education", "programs"]);
-  if (/консультац|(?:^|[^а-яё])психолог|онлайн|специалист|реб[её]нк/i.test(q)) return result("На этой странице описаны форматы консультаций и специалисты центра. Помощник не подбирает специалиста по симптомам.", ["consultation"]);
-  if (/записа|заявк|хочу прийти|забронировать/i.test(q)) return result("В демо заявки не отправляются. Выберите услугу на официальном сайте и воспользуйтесь указанным там способом записи.", ["home"]);
-  if (/адрес|где (?:вы|наход)|как добрат|метро/i.test(q)) return result("Центр указывает адрес: Санкт-Петербург, Боткинская ул., д. 1, к. 4А, рядом с м. «Площадь Ленина».", ["home"], "fact");
-  if (/телефон|позвонить|номер/i.test(q)) return result("Телефон, опубликованный центром: +7 (911) 970-97-27.", ["home"], "fact");
-  if (/почт|e-?mail|написать/i.test(q)) return result("E-mail, опубликованный центром: info@orion-center.ru.", ["home"], "fact");
-  if (/контакт/i.test(q)) return result("Контакты центра: Санкт-Петербург, Боткинская ул., д. 1, к. 4А; +7 (911) 970-97-27; info@orion-center.ru.", ["home"], "fact");
-  return result("Точного ответа в проверенных сценариях демо пока нет. Можно открыть официальный сайт или задать администратору центра организационный вопрос.", ["home"], "unknown");
+  if (!q) return result(responses.empty);
+  if (crisis.test(q)) return result(responses.crisis, [], "crisis");
+  if (injection.test(q)) return result(responses.injection, ["home"], "boundary");
+  if (/вернут|возврат|оферт|услови.*оплат/i.test(q)) return result(responses.refund, ["offer"]);
+  if (/храните|переписк|конфиденциальн|персональн.*данн|политик/i.test(q)) return result(responses.privacy, ["policy"]);
+  if (payment.test(q)) return result(responses.payment, ["home"], "boundary");
+  if (clinical.test(q)) return result(responses.clinical, ["consultation"], "boundary");
+  if (/гарантир|обеща.*результат|точно поможет/i.test(q)) return result(responses.guarantee, ["consultation"], "boundary");
+  if (/^она онлайн|^она очно|онлайн или очно/i.test(q)) return result(responses.eventFormat, ["schedule"]);
+  if (lastSourceKey && /^(она|он|они|там|эт[ао]|сколько|когда|формат|очно|онлайн|стоимость|цена|регистрац)/i.test(q)) return result(responses.context, [lastSourceKey], "context");
+  if (/распис|мероприят|ближайш|когда|дата|мест[ао]/i.test(q)) return result(responses.schedule, ["schedule"]);
+  if (/клуб|вечер с польз/i.test(q)) return result(responses.club, ["club"]);
+  if (/аренд|зал|кабинет|тренинг.*мест/i.test(q)) return result(responses.rental, ["rental"]);
+  if (/process|процесс|обуч|учиться|программ|образован|документ|диплом|сертифик/i.test(q)) return result(responses.education, ["education", "programs"]);
+  if (/консультац|(?:^|[^а-яё])психолог|онлайн|специалист|реб[её]нк/i.test(q)) return result(responses.consultation, ["consultation"]);
+  if (/записа|заявк|хочу прийти|забронировать/i.test(q)) return result(responses.booking, ["home"]);
+  if (/адрес|где (?:вы|наход)|как добрат|метро/i.test(q)) return result(responses.address, ["home"], "fact");
+  if (/телефон|позвонить|номер/i.test(q)) return result(responses.phone, ["home"], "fact");
+  if (/почт|e-?mail|написать/i.test(q)) return result(responses.email, ["home"], "fact");
+  if (/контакт/i.test(q)) return result(responses.contacts, ["home"], "fact");
+  return result(responses.unknown, ["home"], "unknown");
 }

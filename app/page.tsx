@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useRef, useState } from "react";
+import { center, uiCopy } from "./content.js";
 import { preparedQuestions, routeQuestion, sources } from "./safe-router.js";
 
 type SourceKey = keyof typeof sources;
@@ -9,7 +10,7 @@ type PreparedQuestion = { category: string; question: string };
 
 const greeting: Message = {
   who: "assistant",
-  text: "Здравствуйте. Я помогу найти открытую страницу с расписанием, консультациями, программами, клубом или арендой. О чём хотите узнать?",
+  text: uiCopy.greeting,
 };
 
 export default function Home() {
@@ -41,14 +42,14 @@ export default function Home() {
       const data = await response.json();
       setMessages((current) => [...current, {
         who: "assistant",
-        text: "Официальная страница доступна и проверена по вашему запросу. Откройте её, чтобы увидеть актуальные даты, цены и условия.",
+        text: uiCopy.liveSuccess,
         sourceKeys: [liveKey],
         live: data.checkedAt,
       }]);
     } catch {
       setMessages((current) => [...current, {
         who: "assistant",
-        text: "Сейчас не удалось проверить официальную страницу. Не буду угадывать — откройте её напрямую или уточните у администратора.",
+        text: uiCopy.liveFailure,
         sourceKeys: [liveKey],
         kind: "unknown",
       }]);
@@ -65,13 +66,13 @@ export default function Home() {
   return (
     <main>
       <header>
-        <p className="eyebrow">НЕЗАВИСИМОЕ ДЕМО · СООБЩЕНИЯ НЕ СОХРАНЯЮТСЯ</p>
-        <h1>AI-администратор<br /><em>для вопросов о центре</em></h1>
-        <p className="lead">Безопасная навигация по открытым страницам психологического центра. Демо не является психологом, врачом или экстренной службой.</p>
-        <div className="notice">Не вводите медицинские подробности, реквизиты, пароли или данные личного кабинета.</div>
+        <p className="eyebrow">{uiCopy.eyebrow}</p>
+        <h1>{uiCopy.headlineMain}<br /><em>{uiCopy.headlineAccent}</em></h1>
+        <p className="lead">{uiCopy.lead}</p>
+        <div className="notice">{uiCopy.privacyNotice}</div>
         <div className="choices">
           <button onClick={() => inputRef.current?.focus()}><b>Спросить помощника</b><span>Получить ответ по открытым страницам прямо сейчас</span></button>
-          <a href="https://orion-center.ru/" target="_blank" rel="noreferrer"><b>Связаться с центром</b><span>Открыть официальный сайт и контакты администратора</span></a>
+          <a href={center.officialSiteUrl} target="_blank" rel="noreferrer"><b>Связаться с центром</b><span>Открыть официальный сайт и контакты администратора</span></a>
         </div>
       </header>
 
@@ -99,8 +100,8 @@ export default function Home() {
         </div>
         <div className="prepared">
           <div>
-            <b>30 готовых проверочных вопросов</b>
-            <span>Только для демо: выберите сценарий и посмотрите подготовленный безопасный ответ.</span>
+            <b>{uiCopy.preparedTitle}</b>
+            <span>{uiCopy.preparedDescription}</span>
           </div>
           <div className="prepared-controls">
             <label className="sr-only" htmlFor="prepared-question">Готовый проверочный вопрос</label>
@@ -122,7 +123,7 @@ export default function Home() {
         </form>
       </section>
 
-      <footer><span>Проект не связан с центром «Орион-С».</span><span>Используются только открытые страницы.</span><span>Реальные заявки не отправляются.</span></footer>
+      <footer><span>Проект не связан с центром «{center.name}».</span><span>Используются только открытые страницы.</span><span>Реальные заявки не отправляются.</span></footer>
     </main>
   );
 }
