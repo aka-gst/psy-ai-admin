@@ -82,5 +82,6 @@ test("published build renders the real product instead of starter content", asyn
   assert.match(html, /0<\/b> сохраняемых сообщений/);
   assert.match(html, /Результаты проверки/);
   assert.match(html, /Оценки сохраняются только в этом браузере/);
+  assert.doesNotMatch(html, /Официальная страница доступна и проверена по вашему запросу/);
   assert.doesNotMatch(html, /Your site is taking shape|Building your site/);
 });

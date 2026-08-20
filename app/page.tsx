@@ -6,7 +6,7 @@ import { preparedQuestions, routeQuestion, sources } from "./safe-router.js";
 
 type SourceKey = keyof typeof sources;
 type Verdict = "correct" | "fix" | "missing";
-type Message = { who: "assistant" | "user"; text: string; sourceKeys?: SourceKey[]; kind?: string; live?: string; questionId?: string };
+type Message = { who: "assistant" | "user"; text: string; sourceKeys?: SourceKey[]; kind?: string; availability?: string; questionId?: string };
 type PreparedQuestion = { category: string; question: string };
 type ReviewQuestion = PreparedQuestion & { id: string };
 type HealthItem = { key: string; label: string; url: string; available: boolean; status: number | null };
@@ -69,20 +69,14 @@ export default function Home() {
     try {
       const response = await fetch(`/api/live?topic=${liveKey}`);
       if (!response.ok) throw new Error("unavailable");
-      const data = await response.json();
-      setMessages((current) => [...current, {
-        who: "assistant",
-        text: uiCopy.liveSuccess,
-        sourceKeys: [liveKey],
-        live: data.checkedAt,
-      }]);
+      await response.json();
+      setMessages((current) => current.map((message, index) => (
+        index === current.length - 1 ? { ...message, availability: uiCopy.liveSuccess } : message
+      )));
     } catch {
-      setMessages((current) => [...current, {
-        who: "assistant",
-        text: uiCopy.liveFailure,
-        sourceKeys: [liveKey],
-        kind: "unknown",
-      }]);
+      setMessages((current) => current.map((message, index) => (
+        index === current.length - 1 ? { ...message, availability: uiCopy.liveFailure } : message
+      )));
     } finally {
       setIsChecking(false);
     }
@@ -186,7 +180,7 @@ export default function Home() {
           {messages.map((message, index) => (
             <article key={index} className={`${message.who} ${message.kind ?? ""}`}>
               <p>{message.text}</p>
-              {message.live && <small>Проверено сейчас · содержимое не сохраняется</small>}
+              {message.availability && <small className="availability">{message.availability}</small>}
               {message.sourceKeys?.map((key) => (
                 <a key={key} href={sources[key].url} target="_blank" rel="noreferrer">
                   <b>{sources[key].label} →</b><span>{sources[key].description}</span>
