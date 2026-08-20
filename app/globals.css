@@ -3,7 +3,7 @@
 :root { color-scheme: light; }
 * { box-sizing: border-box; }
 body { margin: 0; background: #f8f7f2; color: #20243a; font-family: Arial, sans-serif; }
-button, input { font: inherit; }
+button, input, select { font: inherit; }
 button, a { -webkit-tap-highlight-color: transparent; }
 main { width: min(920px, calc(100% - 32px)); margin: auto; padding: 56px 0 34px; }
 .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .1em; color: #6b6577; }
@@ -30,11 +30,18 @@ h1 em { color: #66529e; font-style: normal; }
 .checking { justify-self: start; padding: 9px 12px; border-radius: 99px; background: #f6f3ed; color: #625d68; font-size: 13px; }
 .suggest { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 22px 16px; }
 .suggest button { border: 1px solid #d5cdef; border-radius: 99px; padding: 9px 11px; background: #fff; color: #4b3976; cursor: pointer; }
+.prepared { display: grid; gap: 13px; margin: 0 16px 16px; padding: 16px; border: 1px solid #d8d0e9; border-radius: 14px; background: #f8f5ff; }
+.prepared > div:first-child { display: grid; gap: 4px; }
+.prepared > div:first-child span { color: #625d6c; font-size: 13px; line-height: 1.4; }
+.prepared-controls { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 9px; }
+.prepared select { min-width: 0; width: 100%; padding: 12px 38px 12px 12px; border: 1px solid #bfb4d6; border-radius: 9px; background: #fff; color: #29243a; cursor: pointer; }
+.prepared button { padding: 12px 15px; border: 0; border-radius: 9px; background: #4c3b73; color: #fff; font-weight: 700; cursor: pointer; }
+.prepared button:disabled { opacity: .48; cursor: not-allowed; }
 form { display: flex; gap: 10px; padding: 16px; border-top: 1px solid #eee; }
 input { flex: 1; min-width: 0; padding: 13px; border: 1px solid #c8c3ba; border-radius: 9px; color: #20243a; }
 form button { padding: 13px 18px; border: 0; border-radius: 9px; background: #66529e; color: #fff; font-weight: 700; cursor: pointer; }
 form button:disabled { opacity: .65; cursor: wait; }
-button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid #d1c1fb; outline-offset: 2px; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #d1c1fb; outline-offset: 2px; }
 footer { display: flex; flex-wrap: wrap; gap: 8px 22px; padding: 20px 4px 0; color: #6a6870; font-size: 12px; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
@@ -46,5 +53,7 @@ footer { display: flex; flex-wrap: wrap; gap: 8px 22px; padding: 20px 4px 0; col
   .messages { max-height: 520px; padding: 14px; }
   .messages article { max-width: 96%; }
   .suggest { padding-inline: 14px; }
+  .prepared { margin-inline: 10px; }
+  .prepared-controls { grid-template-columns: 1fr; }
   form { flex-direction: column; }
 }

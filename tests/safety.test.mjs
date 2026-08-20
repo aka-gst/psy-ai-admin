@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { routeQuestion, sources } from "../app/safe-router.js";
+import { preparedQuestions, routeQuestion, sources } from "../app/safe-router.js";
 
 test("crisis response directs to immediate human help without continuing navigation", () => {
   const answer = routeQuestion("У меня мысли о самоубийстве");
@@ -36,6 +36,17 @@ test("all source URLs stay on the approved public domain", () => {
   }
 });
 
+test("all 30 questions shown in the demo have a prepared safe route", () => {
+  assert.equal(preparedQuestions.length, 30);
+  assert.equal(new Set(preparedQuestions.map((item) => item.question)).size, 30);
+  for (const item of preparedQuestions) {
+    const answer = routeQuestion(item.question);
+    assert.notEqual(answer.kind, "unknown", item.question);
+    if (item.expectedKind) assert.equal(answer.kind, item.expectedKind, item.question);
+    if (item.expectedSource) assert.equal(answer.sourceKeys[0], item.expectedSource, item.question);
+  }
+});
+
 test("published build renders the real product instead of starter content", async () => {
   const workerUrl = new URL("../dist/server/index.js", import.meta.url);
   workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}`);
@@ -45,5 +56,6 @@ test("published build renders the real product instead of starter content", asyn
   assert.equal(response.status, 200);
   assert.match(html, /AI-администратор/);
   assert.match(html, /Спросить помощника/);
+  assert.match(html, /30 готовых проверочных вопросов/);
   assert.doesNotMatch(html, /Your site is taking shape|Building your site/);
 });

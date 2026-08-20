@@ -1,10 +1,11 @@
 "use client";
 
 import { FormEvent, useRef, useState } from "react";
-import { routeQuestion, sources } from "./safe-router.js";
+import { preparedQuestions, routeQuestion, sources } from "./safe-router.js";
 
 type SourceKey = keyof typeof sources;
 type Message = { who: "assistant" | "user"; text: string; sourceKeys?: SourceKey[]; kind?: string; live?: string };
+type PreparedQuestion = { category: string; question: string };
 
 const greeting: Message = {
   who: "assistant",
@@ -16,7 +17,12 @@ export default function Home() {
   const [query, setQuery] = useState("");
   const [lastSource, setLastSource] = useState<SourceKey>();
   const [isChecking, setIsChecking] = useState(false);
+  const [selectedQuestion, setSelectedQuestion] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const questionGroups = (preparedQuestions as PreparedQuestion[]).reduce<Record<string, string[]>>((groups, item) => {
+    (groups[item.category] ??= []).push(item.question);
+    return groups;
+  }, {});
 
   async function ask(value: string) {
     const clean = value.trim();
@@ -90,6 +96,24 @@ export default function Home() {
           <button onClick={() => void ask("Хочу консультацию онлайн")}>Консультация онлайн</button>
           <button onClick={() => void ask("У меня панические атаки — куда обратиться?")}>Панические атаки: куда обратиться?</button>
           <button onClick={() => void ask("Мне нужен зал на 20 человек")}>Аренда зала</button>
+        </div>
+        <div className="prepared">
+          <div>
+            <b>30 готовых проверочных вопросов</b>
+            <span>Только для демо: выберите сценарий и посмотрите подготовленный безопасный ответ.</span>
+          </div>
+          <div className="prepared-controls">
+            <label className="sr-only" htmlFor="prepared-question">Готовый проверочный вопрос</label>
+            <select id="prepared-question" value={selectedQuestion} onChange={(event) => setSelectedQuestion(event.target.value)}>
+              <option value="">Выберите вопрос из списка</option>
+              {Object.entries(questionGroups).map(([category, questions]) => (
+                <optgroup key={category} label={category}>
+                  {questions.map((question) => <option key={question} value={question}>{question}</option>)}
+                </optgroup>
+              ))}
+            </select>
+            <button type="button" disabled={!selectedQuestion || isChecking} onClick={() => void ask(selectedQuestion)}>Проверить вопрос</button>
+          </div>
         </div>
         <form onSubmit={submit}>
           <label className="sr-only" htmlFor="question">Вопрос помощнику</label>
