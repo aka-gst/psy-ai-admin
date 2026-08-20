@@ -51,9 +51,10 @@ test("center settings and response copy are complete and separated from routing 
   for (const item of quickQuestions) assert.notEqual(routeQuestion(item.question).kind, "unknown", item.question);
 });
 
-test("all 30 questions shown in the demo have a prepared safe route", () => {
-  assert.equal(preparedQuestions.length, 30);
-  assert.equal(new Set(preparedQuestions.map((item) => item.question)).size, 30);
+test("all 60 questions shown in the demo have a prepared safe route", () => {
+  assert.equal(preparedQuestions.length, 60);
+  assert.equal(new Set(preparedQuestions.map((item) => item.question)).size, 60);
+  assert.equal(new Set(preparedQuestions.map((item) => item.id)).size, 60);
   assert.ok(preparedQuestions.every((item) => !item.question.endsWith(".")));
   for (const item of preparedQuestions) {
     const answer = routeQuestion(item.question);
@@ -72,9 +73,11 @@ test("published build renders the real product instead of starter content", asyn
   assert.equal(response.status, 200);
   assert.match(html, /AI-администратор/);
   assert.match(html, /Спросить помощника/);
-  assert.match(html, /30 готовых проверочных вопросов/);
+  assert.match(html, /60 готовых проверочных вопросов/);
   assert.match(html, /Проверка официальных ссылок/);
   assert.match(html, /Как проверить демо за 3 минуты/);
   assert.match(html, /0<\/b> сохраняемых сообщений/);
+  assert.match(html, /Результаты проверки/);
+  assert.match(html, /Оценки сохраняются только в этом браузере/);
   assert.doesNotMatch(html, /Your site is taking shape|Building your site/);
 });

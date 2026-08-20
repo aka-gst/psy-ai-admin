@@ -1,12 +1,14 @@
 "use client";
 
-import { FormEvent, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { center, demoGuide, quickQuestions, uiCopy } from "./content.js";
 import { preparedQuestions, routeQuestion, sources } from "./safe-router.js";
 
 type SourceKey = keyof typeof sources;
-type Message = { who: "assistant" | "user"; text: string; sourceKeys?: SourceKey[]; kind?: string; live?: string };
+type Verdict = "correct" | "fix" | "missing";
+type Message = { who: "assistant" | "user"; text: string; sourceKeys?: SourceKey[]; kind?: string; live?: string; questionId?: string };
 type PreparedQuestion = { category: string; question: string };
+type ReviewQuestion = PreparedQuestion & { id: string };
 type HealthItem = { key: string; label: string; url: string; available: boolean; status: number | null };
 
 const greeting: Message = {
@@ -21,17 +23,31 @@ export default function Home() {
   const [isChecking, setIsChecking] = useState(false);
   const [selectedQuestion, setSelectedQuestion] = useState("");
   const [health, setHealth] = useState<{ checking: boolean; available?: number; total?: number; results?: HealthItem[] }>({ checking: false });
+  const [feedback, setFeedback] = useState<Record<string, Verdict>>({});
   const inputRef = useRef<HTMLInputElement>(null);
   const questionGroups = (preparedQuestions as PreparedQuestion[]).reduce<Record<string, string[]>>((groups, item) => {
     (groups[item.category] ??= []).push(item.question);
     return groups;
   }, {});
 
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      try {
+        const saved = localStorage.getItem("psy-ai-admin-review-v1");
+        if (saved) setFeedback(JSON.parse(saved));
+      } catch {
+        // Повреждённые локальные данные не должны мешать работе демо.
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
   async function ask(value: string) {
     const clean = value.trim();
     if (!clean || isChecking) return;
     const answer = routeQuestion(clean, lastSource) as { text: string; sourceKeys: SourceKey[]; kind: string };
-    setMessages((current) => [...current, { who: "user", text: clean }, { who: "assistant", ...answer }]);
+    const prepared = (preparedQuestions as ReviewQuestion[]).find((item) => item.question === clean);
+    setMessages((current) => [...current, { who: "user", text: clean }, { who: "assistant", ...answer, questionId: prepared?.id }]);
     setQuery("");
     setLastSource(answer.sourceKeys[0]);
 
@@ -77,6 +93,27 @@ export default function Home() {
     }
   }
 
+  function review(questionId: string, verdict: Verdict) {
+    setFeedback((current) => {
+      const next = { ...current, [questionId]: verdict };
+      localStorage.setItem("psy-ai-admin-review-v1", JSON.stringify(next));
+      return next;
+    });
+  }
+
+  function clearReview() {
+    localStorage.removeItem("psy-ai-admin-review-v1");
+    setFeedback({});
+  }
+
+  const reviewCounts = {
+    reviewed: Object.keys(feedback).length,
+    correct: Object.values(feedback).filter((value) => value === "correct").length,
+    fix: Object.values(feedback).filter((value) => value === "fix").length,
+    missing: Object.values(feedback).filter((value) => value === "missing").length,
+  };
+  const flaggedQuestions = (preparedQuestions as ReviewQuestion[]).filter((item) => feedback[item.id] === "fix" || feedback[item.id] === "missing");
+
   return (
     <main>
       <header>
@@ -119,6 +156,14 @@ export default function Home() {
                   <b>{sources[key].label} →</b><span>{sources[key].description}</span>
                 </a>
               ))}
+              {message.questionId && (
+                <div className="answer-review" aria-label="Оценка подготовленного ответа">
+                  <span>Оцените ответ:</span>
+                  <button className={feedback[message.questionId] === "correct" ? "selected" : ""} onClick={() => review(message.questionId!, "correct")}>Верно</button>
+                  <button className={feedback[message.questionId] === "fix" ? "selected" : ""} onClick={() => review(message.questionId!, "fix")}>Нужно исправить</button>
+                  <button className={feedback[message.questionId] === "missing" ? "selected" : ""} onClick={() => review(message.questionId!, "missing")}>Не хватает ответа</button>
+                </div>
+              )}
             </article>
           ))}
           {isChecking && <div className="checking" role="status">Проверяю официальную страницу…</div>}
@@ -171,6 +216,27 @@ export default function Home() {
           <input ref={inputRef} id="question" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Например: Где посмотреть расписание?" autoComplete="off" required />
           <button disabled={isChecking}>{isChecking ? "Проверяю…" : "Получить ответ"}</button>
         </form>
+      </section>
+
+      <section className="review-results" aria-labelledby="review-results-title">
+        <div className="review-heading">
+          <div><p>ЛОКАЛЬНЫЙ РЕЖИМ ПРОВЕРКИ</p><h2 id="review-results-title">Результаты проверки</h2></div>
+          {reviewCounts.reviewed > 0 && <button onClick={clearReview}>Сбросить оценки</button>}
+        </div>
+        <p>Оценки сохраняются только в этом браузере. Тексты вопросов, сообщения и контакты никуда не отправляются.</p>
+        <div className="review-stats">
+          <span><b>{reviewCounts.reviewed}</b> из {preparedQuestions.length} проверено</span>
+          <span><b>{reviewCounts.correct}</b> верно</span>
+          <span><b>{reviewCounts.fix}</b> исправить</span>
+          <span><b>{reviewCounts.missing}</b> не хватает ответа</span>
+        </div>
+        {flaggedQuestions.length > 0 ? (
+          <ul>{flaggedQuestions.map((item) => (
+            <li key={item.id}><span>{feedback[item.id] === "fix" ? "Исправить" : "Не хватает"}</span>{item.question}</li>
+          ))}</ul>
+        ) : (
+          <div className="review-empty">Выберите вопрос из списка, получите ответ и поставьте оценку.</div>
+        )}
       </section>
 
       <footer><span>Проект не связан с центром «{center.name}».</span><span>Используются только открытые страницы.</span><span>Реальные заявки не отправляются.</span></footer>
