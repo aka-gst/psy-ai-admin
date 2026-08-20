@@ -25,6 +25,7 @@ export default function Home() {
   const [health, setHealth] = useState<{ checking: boolean; available?: number; total?: number; results?: HealthItem[] }>({ checking: false });
   const [feedback, setFeedback] = useState<Record<string, Verdict>>({});
   const inputRef = useRef<HTMLInputElement>(null);
+  const messagesRef = useRef<HTMLDivElement>(null);
   const questionGroups = (preparedQuestions as PreparedQuestion[]).reduce<Record<string, string[]>>((groups, item) => {
     (groups[item.category] ??= []).push(item.question);
     return groups;
@@ -41,6 +42,16 @@ export default function Home() {
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      const container = messagesRef.current;
+      if (!container) return;
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      container.scrollTo({ top: container.scrollHeight, behavior: reduceMotion ? "auto" : "smooth" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [messages, isChecking]);
 
   async function ask(value: string) {
     const clean = value.trim();
@@ -146,7 +157,7 @@ export default function Home() {
 
       <section className="chat" aria-label="Демонстрационный чат">
         <div className="bar"><b>Организационный вопрос</b><button onClick={() => { setMessages([greeting]); setLastSource(undefined); }}>Начать заново</button></div>
-        <div className="messages" aria-live="polite">
+        <div ref={messagesRef} className="messages" aria-live="polite">
           {messages.map((message, index) => (
             <article key={index} className={`${message.who} ${message.kind ?? ""}`}>
               <p>{message.text}</p>
