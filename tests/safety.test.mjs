@@ -44,7 +44,10 @@ test("center settings and response copy are complete and separated from routing 
   assert.ok(Object.values(uiCopy).every((value) => typeof value === "string" && value.length > 0));
   assert.ok(Object.values(responses).every((value) => typeof value === "string" && value.length > 0));
   const routerSource = await readFile(new URL("../app/safe-router.js", import.meta.url), "utf8");
+  const editableCatalog = JSON.parse(await readFile(new URL("../app/center-content.json", import.meta.url), "utf8"));
   const workerSource = await readFile(new URL("../worker/index.ts", import.meta.url), "utf8");
+  assert.deepEqual(editableCatalog.center, center);
+  assert.equal(editableCatalog.sources.home.url, center.officialSiteUrl);
   assert.doesNotMatch(routerSource, /Орион-С|Боткинская|970-97-27|info@orion-center/);
   assert.doesNotMatch(workerSource, /orion-center\.ru/);
   assert.match(workerSource, /\/api\/health/);
