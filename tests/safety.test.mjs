@@ -39,6 +39,7 @@ test("all source URLs stay on the approved public domain", () => {
 test("all 30 questions shown in the demo have a prepared safe route", () => {
   assert.equal(preparedQuestions.length, 30);
   assert.equal(new Set(preparedQuestions.map((item) => item.question)).size, 30);
+  assert.ok(preparedQuestions.every((item) => !item.question.endsWith(".")));
   for (const item of preparedQuestions) {
     const answer = routeQuestion(item.question);
     assert.notEqual(answer.kind, "unknown", item.question);
