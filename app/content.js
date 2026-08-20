@@ -21,6 +21,8 @@ export const uiCopy = {
   liveFailure: "Сейчас не удалось проверить официальную страницу. Не буду угадывать — откройте её напрямую или уточните у администратора.",
   preparedTitle: "30 готовых проверочных вопросов",
   preparedDescription: "Только для демо: выберите сценарий и посмотрите подготовленный безопасный ответ.",
+  healthTitle: "Проверка официальных ссылок",
+  healthDescription: "Только для демо: проверяет доступность настроенных страниц без сохранения их содержимого.",
 };
 
 export const responses = {
@@ -58,6 +60,13 @@ export const sources = {
   offer: { label: "Открыть публичную оферту", description: "Официальные условия оплаты и возврата", url: "https://orion-center.ru/publicoferta" },
   home: { label: "Открыть сайт «Орион-С»", description: "Контакты и все открытые разделы центра", url: "https://orion-center.ru/" },
 };
+
+export const quickQuestions = [
+  { label: "Ближайшие мероприятия", question: "Какие мероприятия ближайшие?" },
+  { label: "Консультация онлайн", question: "Хочу консультацию онлайн" },
+  { label: "Панические атаки: куда обратиться?", question: "У меня панические атаки — куда обратиться?" },
+  { label: "Аренда зала", question: "Мне нужен зал на 20 человек" },
+];
 
 export const preparedQuestions = [
   { category: "Расписание", question: "Какие мероприятия ближайшие?", expectedSource: "schedule" },

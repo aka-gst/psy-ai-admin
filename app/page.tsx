@@ -1,12 +1,13 @@
 "use client";
 
 import { FormEvent, useRef, useState } from "react";
-import { center, uiCopy } from "./content.js";
+import { center, quickQuestions, uiCopy } from "./content.js";
 import { preparedQuestions, routeQuestion, sources } from "./safe-router.js";
 
 type SourceKey = keyof typeof sources;
 type Message = { who: "assistant" | "user"; text: string; sourceKeys?: SourceKey[]; kind?: string; live?: string };
 type PreparedQuestion = { category: string; question: string };
+type HealthItem = { key: string; label: string; url: string; available: boolean; status: number | null };
 
 const greeting: Message = {
   who: "assistant",
@@ -19,6 +20,7 @@ export default function Home() {
   const [lastSource, setLastSource] = useState<SourceKey>();
   const [isChecking, setIsChecking] = useState(false);
   const [selectedQuestion, setSelectedQuestion] = useState("");
+  const [health, setHealth] = useState<{ checking: boolean; available?: number; total?: number; results?: HealthItem[] }>({ checking: false });
   const inputRef = useRef<HTMLInputElement>(null);
   const questionGroups = (preparedQuestions as PreparedQuestion[]).reduce<Record<string, string[]>>((groups, item) => {
     (groups[item.category] ??= []).push(item.question);
@@ -63,6 +65,18 @@ export default function Home() {
     void ask(query);
   }
 
+  async function checkLinks() {
+    setHealth({ checking: true });
+    try {
+      const response = await fetch("/api/health");
+      if (!response.ok) throw new Error("unavailable");
+      const data = await response.json();
+      setHealth({ checking: false, available: data.available, total: data.total, results: data.results });
+    } catch {
+      setHealth({ checking: false, available: 0, total: Object.keys(sources).length });
+    }
+  }
+
   return (
     <main>
       <header>
@@ -93,10 +107,9 @@ export default function Home() {
           {isChecking && <div className="checking" role="status">Проверяю официальную страницу…</div>}
         </div>
         <div className="suggest">
-          <button onClick={() => void ask("Какие мероприятия ближайшие?")}>Ближайшие мероприятия</button>
-          <button onClick={() => void ask("Хочу консультацию онлайн")}>Консультация онлайн</button>
-          <button onClick={() => void ask("У меня панические атаки — куда обратиться?")}>Панические атаки: куда обратиться?</button>
-          <button onClick={() => void ask("Мне нужен зал на 20 человек")}>Аренда зала</button>
+          {quickQuestions.map((item: { label: string; question: string }) => (
+            <button key={item.label} onClick={() => void ask(item.question)}>{item.label}</button>
+          ))}
         </div>
         <div className="prepared">
           <div>
@@ -115,6 +128,26 @@ export default function Home() {
             </select>
             <button type="button" disabled={!selectedQuestion || isChecking} onClick={() => void ask(selectedQuestion)}>Проверить вопрос</button>
           </div>
+        </div>
+        <div className="health">
+          <div>
+            <b>{uiCopy.healthTitle}</b>
+            <span>{uiCopy.healthDescription}</span>
+          </div>
+          <button type="button" disabled={health.checking} onClick={() => void checkLinks()}>
+            {health.checking ? "Проверяю страницы…" : "Проверить все ссылки"}
+          </button>
+          {health.total !== undefined && (
+            <div className="health-result" role="status">
+              <strong>{health.available} из {health.total} страниц доступны</strong>
+              {health.results && <ul>{health.results.map((item) => (
+                <li key={item.key} className={item.available ? "available" : "unavailable"}>
+                  <span aria-hidden="true">{item.available ? "✓" : "!"}</span>
+                  <a href={item.url} target="_blank" rel="noreferrer">{item.label}</a>
+                </li>
+              ))}</ul>}
+            </div>
+          )}
         </div>
         <form onSubmit={submit}>
           <label className="sr-only" htmlFor="question">Вопрос помощнику</label>

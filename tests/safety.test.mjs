@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { center, responses, uiCopy } from "../app/content.js";
+import { center, quickQuestions, responses, uiCopy } from "../app/content.js";
 import { preparedQuestions, routeQuestion, sources } from "../app/safe-router.js";
 
 test("crisis response directs to immediate human help without continuing navigation", () => {
@@ -44,7 +44,11 @@ test("center settings and response copy are complete and separated from routing 
   assert.ok(Object.values(uiCopy).every((value) => typeof value === "string" && value.length > 0));
   assert.ok(Object.values(responses).every((value) => typeof value === "string" && value.length > 0));
   const routerSource = await readFile(new URL("../app/safe-router.js", import.meta.url), "utf8");
+  const workerSource = await readFile(new URL("../worker/index.ts", import.meta.url), "utf8");
   assert.doesNotMatch(routerSource, /Орион-С|Боткинская|970-97-27|info@orion-center/);
+  assert.doesNotMatch(workerSource, /orion-center\.ru/);
+  assert.match(workerSource, /\/api\/health/);
+  for (const item of quickQuestions) assert.notEqual(routeQuestion(item.question).kind, "unknown", item.question);
 });
 
 test("all 30 questions shown in the demo have a prepared safe route", () => {
@@ -69,5 +73,6 @@ test("published build renders the real product instead of starter content", asyn
   assert.match(html, /AI-администратор/);
   assert.match(html, /Спросить помощника/);
   assert.match(html, /30 готовых проверочных вопросов/);
+  assert.match(html, /Проверка официальных ссылок/);
   assert.doesNotMatch(html, /Your site is taking shape|Building your site/);
 });

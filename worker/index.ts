@@ -1,6 +1,7 @@
 /** Cloudflare Worker entry point for the vinext-starter template. */
 import { handleImageOptimization, DEFAULT_DEVICE_SIZES, DEFAULT_IMAGE_SIZES } from "vinext/server/image-optimization";
 import handler from "vinext/server/app-router-entry";
+import { sources } from "../app/content.js";
 
 interface Env {
   ASSETS: Fetcher;
@@ -30,9 +31,9 @@ const worker = {
     const url = new URL(request.url);
 
     if (url.pathname === "/api/live") {
-      const pages: Record<string, string> = { schedule: "https://orion-center.ru/schedule", club: "https://orion-center.ru/psycluborion", rental: "https://orion-center.ru/services" };
       const topic = url.searchParams.get("topic") ?? "";
-      const source = pages[topic];
+      const configured = sources[topic as keyof typeof sources];
+      const source = configured?.dynamic ? configured.url : null;
       if (!source) return Response.json({ error: "Unknown public topic" }, { status: 400 });
       try {
         const upstream = await fetch(source, {
@@ -48,6 +49,29 @@ const worker = {
           available: true,
         }, { headers: { "Cache-Control": "no-store" } });
       } catch { return Response.json({ error: "Public page unavailable" }, { status: 502 }); }
+    }
+
+    if (url.pathname === "/api/health") {
+      const entries = Object.entries(sources);
+      const results = await Promise.all(entries.map(async ([key, source]) => {
+        try {
+          const upstream = await fetch(source.url, {
+            headers: { "User-Agent": "PsyAIAdminDemo/0.3 (+link-check)" },
+            signal: AbortSignal.timeout(8000),
+          });
+          const status = upstream.status;
+          await upstream.body?.cancel();
+          return { key, label: source.label, url: source.url, available: upstream.ok, status };
+        } catch {
+          return { key, label: source.label, url: source.url, available: false, status: null };
+        }
+      }));
+      return Response.json({
+        checkedAt: new Date().toISOString(),
+        available: results.filter((item) => item.available).length,
+        total: results.length,
+        results,
+      }, { headers: { "Cache-Control": "no-store" } });
     }
 
     if (url.pathname === "/_vinext/image") {

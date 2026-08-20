@@ -37,6 +37,18 @@ h1 em { color: #66529e; font-style: normal; }
 .prepared select { min-width: 0; width: 100%; padding: 12px 38px 12px 12px; border: 1px solid #bfb4d6; border-radius: 9px; background: #fff; color: #29243a; cursor: pointer; }
 .prepared button { padding: 12px 15px; border: 0; border-radius: 9px; background: #4c3b73; color: #fff; font-weight: 700; cursor: pointer; }
 .prepared button:disabled { opacity: .48; cursor: not-allowed; }
+.health { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 13px; margin: 0 16px 16px; padding: 16px; border: 1px solid #d7d2c9; border-radius: 14px; background: #faf9f6; }
+.health > div:first-child { display: grid; gap: 4px; }
+.health > div:first-child span { color: #625d6c; font-size: 13px; line-height: 1.4; }
+.health > button { padding: 11px 14px; border: 1px solid #66529e; border-radius: 9px; background: #fff; color: #4c3b73; font-weight: 700; cursor: pointer; }
+.health > button:disabled { opacity: .55; cursor: wait; }
+.health-result { grid-column: 1 / -1; display: grid; gap: 10px; padding-top: 12px; border-top: 1px solid #e3dfd6; }
+.health-result ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px 14px; margin: 0; padding: 0; list-style: none; }
+.health-result li { display: flex; gap: 7px; align-items: baseline; min-width: 0; font-size: 13px; }
+.health-result li span { font-weight: 800; }
+.health-result .available span { color: #24754b; }
+.health-result .unavailable span { color: #b44d36; }
+.health-result a { overflow: hidden; color: #4a4160; text-overflow: ellipsis; white-space: nowrap; }
 form { display: flex; gap: 10px; padding: 16px; border-top: 1px solid #eee; }
 input { flex: 1; min-width: 0; padding: 13px; border: 1px solid #c8c3ba; border-radius: 9px; color: #20243a; }
 form button { padding: 13px 18px; border: 0; border-radius: 9px; background: #66529e; color: #fff; font-weight: 700; cursor: pointer; }
@@ -55,5 +67,8 @@ footer { display: flex; flex-wrap: wrap; gap: 8px 22px; padding: 20px 4px 0; col
   .suggest { padding-inline: 14px; }
   .prepared { margin-inline: 10px; }
   .prepared-controls { grid-template-columns: 1fr; }
+  .health { grid-template-columns: 1fr; margin-inline: 10px; }
+  .health-result { grid-column: auto; }
+  .health-result ul { grid-template-columns: 1fr; }
   form { flex-direction: column; }
 }
