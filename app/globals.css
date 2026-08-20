@@ -15,6 +15,18 @@ h1 em { color: #66529e; font-style: normal; }
 .choices button, .choices a { display: grid; gap: 6px; min-height: 78px; padding: 16px; border: 1px solid #c9bfdf; border-radius: 14px; background: #fff; color: #484161; text-align: left; text-decoration: none; cursor: pointer; }
 .choices button { background: #66529e; color: #fff; border-color: #66529e; }
 .choices span, .messages a span { font-size: 13px; line-height: 1.35; }
+.demo-guide { display: grid; gap: 10px; margin-bottom: 16px; }
+.demo-status { display: grid; grid-template-columns: repeat(3, 1fr); overflow: hidden; border: 1px solid #ded9d0; border-radius: 14px; background: #fff; }
+.demo-status span { display: flex; align-items: baseline; gap: 6px; padding: 13px 15px; color: #656170; font-size: 13px; }
+.demo-status span + span { border-left: 1px solid #e8e3da; }
+.demo-status b { color: #4f3d78; font-size: 18px; }
+.demo-guide details { padding: 14px 16px; border: 1px solid #d8d0e9; border-radius: 14px; background: #f8f5ff; }
+.demo-guide summary { color: #463765; font-weight: 700; cursor: pointer; }
+.demo-guide details > p { margin: 12px 0; color: #625d6c; font-size: 14px; line-height: 1.45; }
+.demo-guide ol { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 0; padding: 0; list-style: none; counter-reset: guide; }
+.demo-guide li { display: grid; align-content: start; gap: 6px; padding: 12px; border: 1px solid #dfd7ee; border-radius: 10px; background: #fff; counter-increment: guide; }
+.demo-guide li b::before { content: counter(guide) ". "; color: #735ca5; }
+.demo-guide li span { color: #65606c; font-size: 12px; line-height: 1.4; }
 .chat { overflow: hidden; border: 1px solid #ded9d0; border-radius: 20px; background: #fff; box-shadow: 0 18px 55px rgba(47, 37, 68, .08); }
 .bar { display: flex; justify-content: space-between; gap: 12px; padding: 16px 22px; border-bottom: 1px solid #eee; }
 .bar button { border: 0; background: none; color: #594587; text-decoration: underline; cursor: pointer; }
@@ -62,6 +74,9 @@ footer { display: flex; flex-wrap: wrap; gap: 8px 22px; padding: 20px 4px 0; col
   h1 { margin-top: 18px; }
   .lead { font-size: 16px; }
   .choices { grid-template-columns: 1fr; }
+  .demo-status { grid-template-columns: 1fr; }
+  .demo-status span + span { border-top: 1px solid #e8e3da; border-left: 0; }
+  .demo-guide ol { grid-template-columns: 1fr; }
   .messages { max-height: 520px; padding: 14px; }
   .messages article { max-width: 96%; }
   .suggest { padding-inline: 14px; }

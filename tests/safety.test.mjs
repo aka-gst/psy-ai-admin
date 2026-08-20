@@ -74,5 +74,7 @@ test("published build renders the real product instead of starter content", asyn
   assert.match(html, /Спросить помощника/);
   assert.match(html, /30 готовых проверочных вопросов/);
   assert.match(html, /Проверка официальных ссылок/);
+  assert.match(html, /Как проверить демо за 3 минуты/);
+  assert.match(html, /0<\/b> сохраняемых сообщений/);
   assert.doesNotMatch(html, /Your site is taking shape|Building your site/);
 });

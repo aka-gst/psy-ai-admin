@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useRef, useState } from "react";
-import { center, quickQuestions, uiCopy } from "./content.js";
+import { center, demoGuide, quickQuestions, uiCopy } from "./content.js";
 import { preparedQuestions, routeQuestion, sources } from "./safe-router.js";
 
 type SourceKey = keyof typeof sources;
@@ -89,6 +89,23 @@ export default function Home() {
           <a href={center.officialSiteUrl} target="_blank" rel="noreferrer"><b>Связаться с центром</b><span>Открыть официальный сайт и контакты администратора</span></a>
         </div>
       </header>
+
+      <section className="demo-guide" aria-label="Инструкция проверки демо">
+        <div className="demo-status">
+          <span><b>{preparedQuestions.length}</b> готовых сценариев</span>
+          <span><b>{Object.keys(sources).length}</b> официальных страниц</span>
+          <span><b>0</b> сохраняемых сообщений</span>
+        </div>
+        <details>
+          <summary>{uiCopy.guideTitle}</summary>
+          <p>{uiCopy.guideIntro}</p>
+          <ol>
+            {demoGuide.map((step: { title: string; text: string }) => (
+              <li key={step.title}><b>{step.title}</b><span>{step.text}</span></li>
+            ))}
+          </ol>
+        </details>
+      </section>
 
       <section className="chat" aria-label="Демонстрационный чат">
         <div className="bar"><b>Организационный вопрос</b><button onClick={() => { setMessages([greeting]); setLastSource(undefined); }}>Начать заново</button></div>
