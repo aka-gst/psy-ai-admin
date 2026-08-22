@@ -3,7 +3,7 @@ import { randomBytes } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { createBooking, decideBooking, listAvailableSlots, listBookings, openDatabase, seedSchedule } from "./lib/database.mjs";
+import { createBooking, createSlot, createSpecialist, decideBooking, deleteAvailableSlot, listAvailableSlots, listBookings, listManagedSlots, listSpecialists, openDatabase, seedSchedule, setSpecialistActive } from "./lib/database.mjs";
 import { createSession, readCookie, sameOrigin, verifySession } from "./lib/security.mjs";
 
 const root = fileURLToPath(new URL(".", import.meta.url));
@@ -72,6 +72,44 @@ export const server = createServer(async (request, response) => {
       if (!isAdmin(request)) return json(response, 401, { error: "Требуется вход." });
       return json(response, 200, { bookings: listBookings(db) });
     }
+    if (request.method === "GET" && url.pathname === "/api/admin/schedule") {
+      if (!isAdmin(request)) return json(response, 401, { error: "Требуется вход." });
+      return json(response, 200, { specialists: listSpecialists(db), slots: listManagedSlots(db) });
+    }
+    if (request.method === "POST" && url.pathname === "/api/admin/specialists") {
+      if (!isAdmin(request) || !sameOrigin(request)) return json(response, 401, { error: "Требуется вход." });
+      const body = await parseBody(request);
+      const name = clean(body.name, 80);
+      const description = clean(body.description, 160);
+      if (name.length < 2) return json(response, 400, { error: "Укажите имя специалиста." });
+      const id = `specialist-${randomBytes(5).toString("hex")}`;
+      createSpecialist(db, { id, name, description });
+      return json(response, 201, { id });
+    }
+    const specialistMatch = url.pathname.match(/^\/api\/admin\/specialists\/([a-zA-Z0-9-]+)$/);
+    if (request.method === "POST" && specialistMatch) {
+      if (!isAdmin(request) || !sameOrigin(request)) return json(response, 401, { error: "Требуется вход." });
+      const body = await parseBody(request);
+      if (typeof body.active !== "boolean") return json(response, 400, { error: "Некорректный статус." });
+      setSpecialistActive(db, specialistMatch[1], body.active);
+      return json(response, 200, { ok: true });
+    }
+    if (request.method === "POST" && url.pathname === "/api/admin/slots") {
+      if (!isAdmin(request) || !sameOrigin(request)) return json(response, 401, { error: "Требуется вход." });
+      const body = await parseBody(request);
+      const startsAt = clean(body.startsAt, 40);
+      const specialistId = clean(body.specialistId, 80);
+      const parsedStart = Date.parse(startsAt);
+      if (!specialistId || !Number.isFinite(parsedStart) || parsedStart <= Date.now()) return json(response, 400, { error: "Выберите специалиста и будущее время." });
+      const id = createSlot(db, specialistId, new Date(parsedStart).toISOString());
+      return json(response, 201, { id });
+    }
+    const slotMatch = url.pathname.match(/^\/api\/admin\/slots\/(\d+)$/);
+    if (request.method === "DELETE" && slotMatch) {
+      if (!isAdmin(request) || !sameOrigin(request)) return json(response, 401, { error: "Требуется вход." });
+      deleteAvailableSlot(db, Number(slotMatch[1]));
+      return json(response, 200, { ok: true });
+    }
     const decisionMatch = url.pathname.match(/^\/api\/admin\/bookings\/(\d+)$/);
     if (request.method === "POST" && decisionMatch) {
       if (!isAdmin(request) || !sameOrigin(request)) return json(response, 401, { error: "Требуется вход." });
@@ -82,7 +120,7 @@ export const server = createServer(async (request, response) => {
     if (request.method === "GET" && await serveStatic(url.pathname, response)) return;
     json(response, 404, { error: "Не найдено." });
   } catch (error) {
-    const known = ["slot_unavailable", "booking_not_pending", "invalid_decision"];
+    const known = ["slot_unavailable", "booking_not_pending", "invalid_decision", "specialist_not_found", "specialist_inactive", "slot_not_deletable"];
     json(response, known.includes(error.message) ? 409 : 500, { error: known.includes(error.message) ? "Состояние записи уже изменилось." : "Внутренняя ошибка." });
   }
 });

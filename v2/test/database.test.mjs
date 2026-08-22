@@ -3,7 +3,7 @@ import { mkdtempSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import test from "node:test";
-import { createBooking, decideBooking, listAvailableSlots, listBookings, openDatabase, seedSchedule } from "../lib/database.mjs";
+import { createBooking, createSlot, createSpecialist, decideBooking, deleteAvailableSlot, listAvailableSlots, listBookings, listManagedSlots, listSpecialists, openDatabase, seedSchedule, setSpecialistActive } from "../lib/database.mjs";
 
 const config = { specialists: [{ id: "one", name: "Специалист", description: "Тест" }], slotHours: ["10:00"] };
 
@@ -26,4 +26,17 @@ test("rejection returns the held slot to the schedule", () => {
   const bookingId = createBooking(db, { slotId: slot.id, clientName: "Тест", contact: "test@example.com", contactType: "email" }, "public-code-2");
   decideBooking(db, bookingId, "rejected");
   assert.equal(listAvailableSlots(db).some((item) => item.id === slot.id), true);
+});
+
+test("manager controls specialists and only available slots can be deleted", () => {
+  const db = openDatabase(join(mkdtempSync(join(tmpdir(), "psy-v2-")), "test.sqlite"));
+  seedSchedule(db, config, new Date("2026-08-23T00:00:00Z"));
+  createSpecialist(db, { id: "two", name: "Второй специалист", description: "Тест" });
+  assert.equal(listSpecialists(db).some((item) => item.id === "two" && item.active), true);
+  const slotId = createSlot(db, "two", "2027-01-15T10:00:00.000Z");
+  assert.equal(listManagedSlots(db).some((item) => item.id === slotId), true);
+  deleteAvailableSlot(db, slotId);
+  assert.equal(listManagedSlots(db).some((item) => item.id === slotId), false);
+  setSpecialistActive(db, "two", false);
+  assert.equal(listSpecialists(db).find((item) => item.id === "two").active, false);
 });

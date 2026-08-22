@@ -72,6 +72,47 @@ export function listAvailableSlots(db) {
   `).all();
 }
 
+export function listSpecialists(db) {
+  return db.prepare(`
+    SELECT id, name, description, active
+    FROM specialists
+    ORDER BY active DESC, name
+  `).all().map((item) => ({ ...item, active: Boolean(item.active) }));
+}
+
+export function createSpecialist(db, input) {
+  db.prepare("INSERT INTO specialists (id,name,description) VALUES (?,?,?)")
+    .run(input.id, input.name, input.description);
+}
+
+export function setSpecialistActive(db, specialistId, active) {
+  const result = db.prepare("UPDATE specialists SET active = ? WHERE id = ?").run(active ? 1 : 0, specialistId);
+  if (result.changes !== 1) throw new Error("specialist_not_found");
+}
+
+export function listManagedSlots(db) {
+  return db.prepare(`
+    SELECT slots.id, slots.starts_at AS startsAt, slots.status,
+      specialists.id AS specialistId, specialists.name AS specialistName
+    FROM slots JOIN specialists ON specialists.id = slots.specialist_id
+    WHERE slots.starts_at >= ?
+    ORDER BY slots.starts_at, specialists.name
+  `).all(new Date().toISOString().slice(0, 10));
+}
+
+export function createSlot(db, specialistId, startsAt) {
+  const specialist = db.prepare("SELECT active FROM specialists WHERE id = ?").get(specialistId);
+  if (!specialist) throw new Error("specialist_not_found");
+  if (!specialist.active) throw new Error("specialist_inactive");
+  const result = db.prepare("INSERT INTO slots (specialist_id,starts_at) VALUES (?,?)").run(specialistId, startsAt);
+  return Number(result.lastInsertRowid);
+}
+
+export function deleteAvailableSlot(db, slotId) {
+  const result = db.prepare("DELETE FROM slots WHERE id = ? AND status = 'available'").run(slotId);
+  if (result.changes !== 1) throw new Error("slot_not_deletable");
+}
+
 export function createBooking(db, input, publicCode, now = new Date().toISOString()) {
   db.exec("BEGIN IMMEDIATE");
   try {
