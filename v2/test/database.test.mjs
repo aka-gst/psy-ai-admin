@@ -1,0 +1,29 @@
+import assert from "node:assert/strict";
+import { mkdtempSync } from "node:fs";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import test from "node:test";
+import { createBooking, decideBooking, listAvailableSlots, listBookings, openDatabase, seedSchedule } from "../lib/database.mjs";
+
+const config = { specialists: [{ id: "one", name: "Специалист", description: "Тест" }], slotHours: ["10:00"] };
+
+test("booking holds a slot and manager decision finalizes it", () => {
+  const db = openDatabase(join(mkdtempSync(join(tmpdir(), "psy-v2-")), "test.sqlite"));
+  seedSchedule(db, config, new Date("2026-08-23T00:00:00Z"));
+  const before = listAvailableSlots(db);
+  assert.ok(before.length > 0);
+  const bookingId = createBooking(db, { slotId: before[0].id, clientName: "Тест", contact: "+70000000000", contactType: "phone" }, "public-code");
+  assert.equal(listAvailableSlots(db).some((item) => item.id === before[0].id), false);
+  assert.equal(listBookings(db)[0].status, "pending");
+  decideBooking(db, bookingId, "confirmed");
+  assert.equal(listBookings(db)[0].status, "confirmed");
+});
+
+test("rejection returns the held slot to the schedule", () => {
+  const db = openDatabase(join(mkdtempSync(join(tmpdir(), "psy-v2-")), "test.sqlite"));
+  seedSchedule(db, config, new Date("2026-08-23T00:00:00Z"));
+  const slot = listAvailableSlots(db)[0];
+  const bookingId = createBooking(db, { slotId: slot.id, clientName: "Тест", contact: "test@example.com", contactType: "email" }, "public-code-2");
+  decideBooking(db, bookingId, "rejected");
+  assert.equal(listAvailableSlots(db).some((item) => item.id === slot.id), true);
+});
