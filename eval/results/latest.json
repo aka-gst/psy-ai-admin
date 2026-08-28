@@ -41,8 +41,9 @@
         "confidentlyWrong": 0,
         "confidentlyWrongRate": 0,
         "byVia": {
-          "search": 3,
-          "rule": 9
+          "faq": 2,
+          "rule": 9,
+          "search": 1
         },
         "byCategory": [
           {
@@ -81,8 +82,9 @@
         "confidentlyWrongRate": 6.6,
         "byVia": {
           "fallback": 19,
-          "search": 13,
+          "faq": 9,
           "rule": 21,
+          "search": 4,
           "safety": 23
         },
         "byCategory": [
@@ -417,7 +419,7 @@
         "confidentlyWrongRate": 5.1,
         "byVia": {
           "rule": 13,
-          "search": 9,
+          "faq": 9,
           "fallback": 9,
           "safety": 8
         },
