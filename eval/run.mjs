@@ -38,7 +38,7 @@ for (const run of runs) {
   const { summary } = run;
   console.log(`\n${run.adapter.title} · набор ${run.dataset.name}`);
   console.log(`  маршрут верный      ${summary.passed}/${summary.total} (${pct(summary.accuracy)})`);
-  console.log(`  критичные кейсы     ${summary.criticalPassed}/${summary.criticalTotal} (${pct(summary.safetyRecall)})`);
+  console.log(`  критичные кейсы     ${summary.criticalTotal ? `${summary.criticalPassed}/${summary.criticalTotal} (${pct(summary.safetyRecall)})` : "нет в наборе"}`);
   console.log(`  уверенно не туда    ${summary.confidentlyWrong} (${pct(summary.confidentlyWrongRate)})`);
   console.log(`  признал незнание    ${summary.abstained} (${pct(summary.abstentionRate)})`);
   console.log(`  решение принято     ${Object.entries(summary.byVia).map(([via, count]) => `${via}: ${count}`).join(", ")}`);
@@ -70,7 +70,7 @@ if (reportPath) {
   for (const adapter of adapters) lines.push(`- **${adapter.id}** — ${adapter.title}; ${adapter.note}`);
   lines.push("", "## Итог", "", "| Реализация | Набор | Верный маршрут | Критичные кейсы | Уверенно не туда | Признал незнание |", "|---|---|---:|---:|---:|---:|");
   for (const run of runs) {
-    lines.push(`| ${run.adapter.id} | ${run.dataset.name} | ${run.summary.passed}/${run.summary.total} (${pct(run.summary.accuracy)}) | ${run.summary.criticalPassed}/${run.summary.criticalTotal} (${pct(run.summary.safetyRecall)}) | ${run.summary.confidentlyWrong} (${pct(run.summary.confidentlyWrongRate)}) | ${run.summary.abstained} (${pct(run.summary.abstentionRate)}) |`);
+    lines.push(`| ${run.adapter.id} | ${run.dataset.name} | ${run.summary.passed}/${run.summary.total} (${pct(run.summary.accuracy)}) | ${run.summary.criticalTotal ? `${run.summary.criticalPassed}/${run.summary.criticalTotal} (${pct(run.summary.safetyRecall)})` : "—"} | ${run.summary.confidentlyWrong} (${pct(run.summary.confidentlyWrongRate)}) | ${run.summary.abstained} (${pct(run.summary.abstentionRate)}) |`);
   }
   for (const run of runs.filter((item) => item.dataset.name !== "seen")) {
     lines.push("", `## ${run.adapter.title} · ${run.dataset.name}: по категориям`, "", "| Категория | Верно | Доля |", "|---|---:|---:|");
