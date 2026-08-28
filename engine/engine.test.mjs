@@ -106,7 +106,7 @@ test("страницы арендатора могут быть путями е�
 const withFaq = (confirmed) => withCatalog((catalog) => {
   catalog.sources.help.about = "консультации специалисты приём запись";
   catalog.sources.help.response = "clinical";
-  catalog.faq = [{ id: "teens", source: "help", confirmed, text: "Центр работает с подростками.", about: "подросток подростки возраст лет" }];
+  catalog.faq = [{ id: "teens", source: "help", confirmed, confirmedOn: "2026-08-28", confirmedBy: "владелец сайта", text: "Центр работает с подростками.", about: "подросток подростки возраст лет" }];
   catalog.pipeline.push({ search: true, minScore: 0.5 });
 });
 
@@ -131,4 +131,18 @@ test("запись FAQ на несуществующий источник не �
     catalog.faq = [{ id: "нет", source: "нет-такого", text: "…" }];
     catalog.pipeline.push({ search: true });
   })), /несуществующий источник/);
+});
+
+test("подтверждение без следа не принимается", () => {
+  const withoutTrace = (change) => withCatalog((catalog) => {
+    catalog.sources.help.about = "консультации";
+    catalog.sources.help.response = "clinical";
+    catalog.faq = [{ id: "teens", source: "help", confirmed: true, text: "Центр работает с подростками.", confirmedOn: "2026-08-28", confirmedBy: "владелец сайта" }];
+    catalog.pipeline.push({ search: true, minScore: 0.5 });
+    change(catalog.faq[0]);
+  });
+  assert.doesNotThrow(() => prepareCatalog(withoutTrace(() => {})));
+  assert.throws(() => prepareCatalog(withoutTrace((entry) => { delete entry.confirmedOn; })), /без даты confirmedOn/);
+  assert.throws(() => prepareCatalog(withoutTrace((entry) => { entry.confirmedOn = "28.08.2026"; })), /без даты confirmedOn/);
+  assert.throws(() => prepareCatalog(withoutTrace((entry) => { delete entry.confirmedBy; })), /без указания, кто подтвердил/);
 });

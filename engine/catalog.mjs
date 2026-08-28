@@ -93,6 +93,13 @@ export function prepareCatalog(raw) {
     if (!(entry.source in sources)) fail(`запись FAQ «${entry.id ?? "?"}» ссылается на несуществующий источник «${entry.source}»`);
     if (!sources[entry.source].response) fail(`у источника «${entry.source}» есть запись FAQ, но не указан ответ`);
     if (!entry.text?.trim()) fail(`запись FAQ «${entry.id ?? "?"}» пуста`);
+    // Снять флаг подтверждения нельзя молча: запись обязана назвать, кто и
+    // когда подтвердил ответ. Иначе «подтверждено» ничем не отличается от
+    // «мы решили, что так правильно».
+    if (entry.confirmed === true) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(entry.confirmedOn ?? "")) fail(`запись FAQ «${entry.id ?? "?"}» подтверждена без даты confirmedOn в виде ГГГГ-ММ-ДД`);
+      if (!entry.confirmedBy?.trim()) fail(`запись FAQ «${entry.id ?? "?"}» подтверждена без указания, кто подтвердил`);
+    }
     documents.push({
       sourceKey: entry.source,
       text: [entry.text, entry.about].filter(Boolean).join(" "),
