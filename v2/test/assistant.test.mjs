@@ -61,3 +61,13 @@ test("предупреждение об экстренной помощи отд
   const page = await (await fetch(`${origin}/`)).text();
   assert.match(page, /id="emergency-notice"/);
 });
+
+test("голосовая страница отдаётся и говорит с тем же маршрутом, что и текстовая", async () => {
+  const page = await (await fetch(`${origin}/voice`)).text();
+  assert.match(page, /id="talk"/);
+  assert.match(page, /id="emergency-notice"/);
+  const script = await (await fetch(`${origin}/voice.js`)).text();
+  // Собственной логики ответа у голосового слоя нет: что сказать, решает движок.
+  assert.match(script, /\/api\/ask/);
+  assert.doesNotMatch(script, /routeQuestion|createAssistant/);
+});

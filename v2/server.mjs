@@ -51,7 +51,7 @@ const loginGuard = createLoginGuard();
 const trustProxy = process.env.TRUST_PROXY === "1";
 
 async function serveStatic(pathname, response) {
-  const routes = { "/": "index.html", "/admin": "admin.html" };
+  const routes = { "/": "index.html", "/admin": "admin.html", "/voice": "voice.html" };
   const relative = routes[pathname] || pathname.replace(/^\//, "");
   if (!/^[a-zA-Z0-9._/-]+$/.test(relative) || relative.includes("..")) return false;
   try {
