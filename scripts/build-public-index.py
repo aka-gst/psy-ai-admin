@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Создаёт локальный поисковый индекс из разрешённого публичного снимка."""
+"""Создаёт локальный поисковый индекс из разрешённого публичного снимка.
+
+Заготовка для перехода с регулярных выражений на поиск по документам:
+индекс не коммитится и собирается из локального снимка публичных страниц.
+"""
 
 from html.parser import HTMLParser
 from pathlib import Path
@@ -7,7 +11,7 @@ import json
 
 ROOT = Path(__file__).resolve().parents[1]
 SNAPSHOT = ROOT / "reference" / "orion-center-public-snapshot"
-OUTPUT = ROOT / "demo" / "public-content-index.js"
+OUTPUT = ROOT / "data" / "private" / "public-content-index.js"
 PAGES = {
     "index.html": ("https://orion-center.ru/", "Главная"),
     "schedule.html": ("https://orion-center.ru/schedule", "Расписание"),
@@ -29,6 +33,7 @@ class TextExtractor(HTMLParser):
         cleaned = " ".join(data.split())
         if cleaned and not self.skip: self.parts.append(cleaned)
 
+OUTPUT.parent.mkdir(parents=True, exist_ok=True)
 documents = []
 for filename, (url, title) in PAGES.items():
     parser = TextExtractor()
