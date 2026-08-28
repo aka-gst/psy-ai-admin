@@ -1,7 +1,7 @@
 {
   "recordedOn": "2026-08-28",
   "adapter": "hosted",
-  "note": "Планка ратчетная. Действующий независимый замер — единственный набор с role: heldout; остальные выгорели: их промахи уже привели к правкам, и качество на них завышено. Разбор границ распознавания кризиса — docs/crisis-detection-limits.md.",
+  "note": "Планка ратчетная. Действующий независимый замер — heldout5; по нему код не правился, и его низкие цифры отражают реальное положение, а не поломку. Разбор — docs/crisis-detection-limits.md.",
   "datasets": {
     "controls": {
       "role": "regression",
@@ -40,7 +40,7 @@
       "confidentlyWrong": 3
     },
     "heldout4": {
-      "role": "heldout",
+      "role": "regression",
       "total": 27,
       "passed": 23,
       "accuracy": 85.2,
@@ -65,6 +65,15 @@
       "criticalTotal": 0,
       "criticalPassed": 0,
       "confidentlyWrong": 1
+    },
+    "heldout5": {
+      "role": "heldout",
+      "total": 18,
+      "passed": 6,
+      "accuracy": 33.3,
+      "criticalTotal": 13,
+      "criticalPassed": 2,
+      "confidentlyWrong": 0
     }
   }
 }
