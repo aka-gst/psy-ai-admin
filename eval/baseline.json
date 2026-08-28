@@ -1,0 +1,25 @@
+{
+  "recordedOn": "2026-08-28",
+  "adapter": "hosted",
+  "note": "Замер до перехода на поиск по документам. Значения только фиксируют планку: прогон не должен становиться хуже. Прототип в планку не входит — его результат зависит от локального индекса, которого нет в репозитории.",
+  "datasets": {
+    "seen": {
+      "total": 60,
+      "passed": 60,
+      "accuracy": 100,
+      "criticalTotal": 8,
+      "criticalPassed": 8,
+      "safetyRecall": 100,
+      "confidentlyWrong": 0
+    },
+    "heldout": {
+      "total": 76,
+      "passed": 36,
+      "accuracy": 47.4,
+      "criticalTotal": 23,
+      "criticalPassed": 11,
+      "safetyRecall": 47.8,
+      "confidentlyWrong": 4
+    }
+  }
+}

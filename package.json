@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
-    "start": "python3 server.py"
+    "start": "python3 server.py",
+    "eval": "node eval/run.mjs",
+    "eval:report": "node eval/run.mjs --report docs/evaluation-baseline.md"
   }
 }

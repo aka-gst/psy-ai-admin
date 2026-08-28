@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import test from "node:test";
 import { center, quickQuestions, responses, uiCopy } from "../app/content.js";
 import { preparedQuestions, routeQuestion, sources } from "../app/safe-router.js";
@@ -67,8 +69,12 @@ test("all 60 questions shown in the demo have a prepared safe route", () => {
   }
 });
 
-test("published build renders the real product instead of starter content", async () => {
-  const workerUrl = new URL("../dist/server/index.js", import.meta.url);
+// Проверка собранного воркера пропускается без сборки: в монорепозитории общий
+// прогон логических тестов не должен требовать pnpm build витрины.
+const builtWorker = new URL("../dist/server/index.js", import.meta.url);
+
+test("published build renders the real product instead of starter content", { skip: existsSync(fileURLToPath(builtWorker)) ? false : "нет сборки: запустите pnpm build в hosted-demo" }, async () => {
+  const workerUrl = new URL(builtWorker);
   workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}`);
   const { default: worker } = await import(workerUrl.href);
   const response = await worker.fetch(new Request("http://localhost/"), { ASSETS: { fetch: async () => new Response("Not found", { status: 404 }) } }, { waitUntil() {}, passThroughOnException() {} });
