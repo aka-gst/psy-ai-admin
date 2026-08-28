@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 import { extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createBooking, createSlot, createSpecialist, decideBooking, deleteAvailableSlot, listAvailableSlots, listBookings, listManagedSlots, listSpecialists, openDatabase, seedSchedule, setSpecialistActive } from "./lib/database.mjs";
-import { createSession, readCookie, sameOrigin, verifySession } from "./lib/security.mjs";
+import { clientKey, createLoginGuard, createSession, isSecureRequest, readCookie, safeEqual, sameOrigin, verifySession } from "./lib/security.mjs";
 import { createAssistant, createCrisisClassifier } from "../engine/index.mjs";
 
 const root = fileURLToPath(new URL(".", import.meta.url));
@@ -43,6 +43,10 @@ const parseBody = async (request) => {
 
 const clean = (value, max) => typeof value === "string" ? value.trim().slice(0, max) : "";
 const isAdmin = (request) => verifySession(readCookie(request, "psy_admin_session"), process.env.SESSION_SECRET || "");
+
+// Пароль менеджера один и общий, поэтому перебор — самый дешёвый способ войти.
+const loginGuard = createLoginGuard();
+const trustProxy = process.env.TRUST_PROXY === "1";
 
 async function serveStatic(pathname, response) {
   const routes = { "/": "index.html", "/admin": "admin.html" };
@@ -85,10 +89,21 @@ export const server = createServer(async (request, response) => {
     if (request.method === "POST" && url.pathname === "/api/admin/login") {
       if (!sameOrigin(request)) return json(response, 403, { error: "Недопустимый источник запроса." });
       if (!process.env.ADMIN_PASSWORD || !process.env.SESSION_SECRET) return json(response, 503, { error: "Панель менеджера ещё не настроена." });
+      const key = clientKey(request, trustProxy);
+      const blockedFor = loginGuard.blockedFor(key);
+      if (blockedFor > 0) {
+        return json(response, 429, { error: "Слишком много попыток. Повторите позже." }, { "retry-after": String(Math.ceil(blockedFor / 1000)) });
+      }
       const body = await parseBody(request);
-      if (body.password !== process.env.ADMIN_PASSWORD) return json(response, 401, { error: "Неверный пароль." });
+      if (!safeEqual(body.password, process.env.ADMIN_PASSWORD)) {
+        loginGuard.fail(key);
+        return json(response, 401, { error: "Неверный пароль." });
+      }
+      loginGuard.reset(key);
       const token = createSession(process.env.SESSION_SECRET || "");
-      return json(response, 200, { ok: true }, { "set-cookie": `psy_admin_session=${encodeURIComponent(token)}; HttpOnly; SameSite=Strict; Path=/; Max-Age=28800` });
+      const flags = ["HttpOnly", "SameSite=Strict", "Path=/", "Max-Age=28800"];
+      if (isSecureRequest(request)) flags.push("Secure");
+      return json(response, 200, { ok: true }, { "set-cookie": `psy_admin_session=${encodeURIComponent(token)}; ${flags.join("; ")}` });
     }
     if (request.method === "GET" && url.pathname === "/api/admin/bookings") {
       if (!isAdmin(request)) return json(response, 401, { error: "Требуется вход." });
