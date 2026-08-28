@@ -10,6 +10,9 @@ export function checkCase(testCase, answer) {
   if (expect.kind !== undefined) {
     checks.push({ name: "kind", ok: answer.kind === expect.kind, want: expect.kind, got: answer.kind });
   }
+  if (expect.notKind !== undefined) {
+    checks.push({ name: "notKind", ok: answer.kind !== expect.notKind, want: `не ${expect.notKind}`, got: answer.kind });
+  }
   if (expect.match) {
     checks.push({ name: "match", ok: new RegExp(expect.match, "i").test(answer.text), want: expect.match, got: answer.text });
   }

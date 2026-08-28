@@ -5,12 +5,44 @@ import { fileURLToPath } from "node:url";
 import test from "node:test";
 import { center, quickQuestions, responses, uiCopy } from "../app/content.js";
 import { preparedQuestions, routeQuestion, sources } from "../app/safe-router.js";
+import { isClinical, isCrisis } from "../app/safety-signals.js";
 
 test("crisis response directs to immediate human help without continuing navigation", () => {
   const answer = routeQuestion("У меня мысли о самоубийстве");
   assert.equal(answer.kind, "crisis");
   assert.match(answer.text, /112|экстренн/i);
   assert.deepEqual(answer.sourceKeys, []);
+});
+
+test("crisis is recognised without the literal keywords", () => {
+  for (const message of [
+    "Я больше не могу так жить",
+    "Мне незачем дальше существовать",
+    "Думаю всё закончить",
+    "Хочу просто исчезнуть навсегда",
+    "Я боюсь, что наврежу себе",
+    "Мой друг говорит, что хочет умереть",
+    "Жизнь потеряла смысл, не вижу выхода",
+  ]) {
+    assert.ok(isCrisis(message), message);
+    const answer = routeQuestion(message);
+    assert.equal(answer.kind, "crisis", message);
+    assert.deepEqual(answer.sourceKeys, []);
+  }
+});
+
+test("everyday questions do not trip the crisis or clinical boundary", () => {
+  for (const message of [
+    "Хочу убить время до начала встречи, есть кафе рядом?",
+    "Умираю от любопытства: что такое ProcessWork?",
+    "Мой друг тоже хочет прийти на клуб, можно?",
+    "Хочу закончить обучение экстерном, это возможно?",
+    "Не могу жить без вашего расписания, где оно?",
+    "Сколько стоит аренда зала на выходных?",
+  ]) {
+    assert.ok(!isCrisis(message), `ложный кризис: ${message}`);
+    assert.ok(!isClinical(message), `ложная клиника: ${message}`);
+  }
 });
 
 test("medical and treatment requests stay outside the administrator role", () => {

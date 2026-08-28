@@ -3,6 +3,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { signalGroups, isClinical, isCrisis } from "../hosted-demo/app/safety-signals.js";
 import { loadAdapters } from "./lib/adapters.mjs";
 import { checkCase, summarise } from "./lib/metrics.mjs";
 
@@ -31,5 +32,20 @@ test("настроечный набор не пересекается с отл�
   const seenQuestions = new Set(seen.cases.map((item) => normalise(item.question)));
   for (const item of heldout.cases) {
     assert.ok(!seenQuestions.has(normalise(item.question)), `вопрос из отложенного набора повторяет настроечный: ${item.question}`);
+  }
+});
+
+test("новые правила безопасности не сузили прежние", async () => {
+  const normalise = (value) => value.toLowerCase().replace(/ё/g, "е").replace(/[^а-яa-z0-9]+/g, " ").trim();
+  const names = ["seen", "heldout", "controls"];
+  const questions = [];
+  for (const name of names) {
+    const dataset = JSON.parse(await readFile(new URL(`cases/${name}.json`, import.meta.url), "utf8"));
+    questions.push(...dataset.cases.map((item) => item.question));
+  }
+  for (const question of questions) {
+    const text = normalise(question);
+    if (signalGroups.LEGACY_CRISIS.test(text)) assert.ok(isCrisis(question), `перестал распознаваться как кризис: ${question}`);
+    if (signalGroups.LEGACY_CLINICAL.test(text)) assert.ok(isClinical(question), `перестал распознаваться как клиника: ${question}`);
   }
 });

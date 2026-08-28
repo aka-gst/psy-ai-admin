@@ -1,8 +1,7 @@
 import { responses } from "./content.js";
+import { isClinical, isCrisis } from "./safety-signals.js";
 export { preparedQuestions, sources } from "./content.js";
 
-const crisis = /самоуб|суицид|убить себя|покончить с собой|причинить.*себе|не хочу жить|навредить.*(себе|друг)/i;
-const clinical = /диагноз|паническ|тревог|депрес|антидепресс|лекарств|таблетк|травм|лечи(ть|те)|терапи|упражнен/i;
 const payment = /карт[аы]|реквизит|cvv|парол|личн(ый|ого) кабинет|оплатить.*чат|как оплатить|оплат[аы].*участ/i;
 const injection = /игнорируй|обойди.*правил|системн(ые|ые инструкции)|раскрой.*инструкц/i;
 
@@ -11,12 +10,12 @@ const result = (text, sourceKeys = [], kind = "route") => ({ text, sourceKeys, k
 export function routeQuestion(input, lastSourceKey) {
   const q = input.trim();
   if (!q) return result(responses.empty);
-  if (crisis.test(q)) return result(responses.crisis, [], "crisis");
+  if (isCrisis(q)) return result(responses.crisis, [], "crisis");
   if (injection.test(q)) return result(responses.injection, ["home"], "boundary");
   if (/вернут|возврат|оферт|услови.*оплат/i.test(q)) return result(responses.refund, ["offer"]);
   if (/храните|переписк|конфиденциальн|персональн.*данн|политик/i.test(q)) return result(responses.privacy, ["policy"]);
   if (payment.test(q)) return result(responses.payment, ["home"], "boundary");
-  if (clinical.test(q)) return result(responses.clinical, ["consultation"], "boundary");
+  if (isClinical(q)) return result(responses.clinical, ["consultation"], "boundary");
   if (/гарантир|обеща.*результат|точно поможет/i.test(q)) return result(responses.guarantee, ["consultation"], "boundary");
   if (/адрес|где (?:вы|наход)|как добрат|метро/i.test(q)) return result(responses.address, ["home"], "fact");
   if (/^она онлайн|^она очно|онлайн или очно/i.test(q)) return result(responses.eventFormat, ["schedule"]);
