@@ -27,7 +27,8 @@ const adapters = await loadAdapters(list("only"));
 const runs = [];
 for (const adapter of adapters) {
   for (const dataset of datasets) {
-    const results = dataset.cases.map((testCase) => ({ testCase, ...checkCase(testCase, adapter.ask(testCase.question, testCase.context)) }));
+    const results = [];
+    for (const testCase of dataset.cases) results.push({ testCase, ...checkCase(testCase, await adapter.ask(testCase.question, testCase.context)) });
     runs.push({ adapter: { id: adapter.id, title: adapter.title, note: adapter.note }, dataset: { name: dataset.name, role: dataset.role ?? "regression", burned: dataset.burned ?? null, title: dataset.title, purpose: dataset.purpose }, summary: summarise(results), results });
   }
 }

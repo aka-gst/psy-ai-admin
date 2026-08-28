@@ -5,7 +5,7 @@ import { extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createBooking, createSlot, createSpecialist, decideBooking, deleteAvailableSlot, listAvailableSlots, listBookings, listManagedSlots, listSpecialists, openDatabase, seedSchedule, setSpecialistActive } from "./lib/database.mjs";
 import { createSession, readCookie, sameOrigin, verifySession } from "./lib/security.mjs";
-import { createAssistant } from "../engine/index.mjs";
+import { createAssistant, createCrisisClassifier } from "../engine/index.mjs";
 
 const root = fileURLToPath(new URL(".", import.meta.url));
 const config = JSON.parse(await readFile(join(root, "config/center.json"), "utf8"));
@@ -14,7 +14,16 @@ seedSchedule(db, config);
 
 // Тот же движок, что и у публичной витрины: границы безопасности общие,
 // различается только каталог арендатора.
-const assistant = createAssistant(JSON.parse(await readFile(join(root, "config/assistant.json"), "utf8")));
+//
+// Второй рубеж распознавания кризиса включается, когда задан адрес локальной
+// модели. Он выключен по умолчанию: продукт не должен молча зависеть от
+// сервиса, который может быть не поднят. Без него распознавание работает на
+// списках шаблонов, а они, по замерам, не обобщаются — см.
+// docs/crisis-detection-limits.md.
+const crisisClassifier = process.env.OLLAMA_BASE_URL
+  ? createCrisisClassifier({ baseUrl: process.env.OLLAMA_BASE_URL, model: process.env.CHAT_MODEL || "qwen3:8b" })
+  : null;
+const assistant = createAssistant(JSON.parse(await readFile(join(root, "config/assistant.json"), "utf8")), { crisisClassifier });
 
 const json = (response, status, body, headers = {}) => {
   response.writeHead(status, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...headers });
@@ -60,7 +69,7 @@ export const server = createServer(async (request, response) => {
       const body = await parseBody(request);
       const question = clean(body.question, 500);
       if (!question) return json(response, 400, { error: "Напишите вопрос." });
-      const answer = assistant.ask(question, clean(body.lastSourceKey, 40) || undefined);
+      const answer = await assistant.ask(question, clean(body.lastSourceKey, 40) || undefined);
       return json(response, 200, { text: answer.text, kind: answer.kind, sourceKeys: answer.sourceKeys, sources: answer.sourceKeys.map((key) => assistant.sources[key]) });
     }
     if (request.method === "POST" && url.pathname === "/api/bookings") {
@@ -141,5 +150,5 @@ export const server = createServer(async (request, response) => {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const port = Number(process.env.PORT || 4180);
   const host = process.env.HOST || "127.0.0.1";
-  server.listen(port, host, () => console.log(`Psy AI Admin V2: http://${host}:${port}`));
+  server.listen(port, host, () => console.log(`Psy AI Admin V2: http://${host}:${port}\nРаспознавание кризиса: ${crisisClassifier ? `шаблоны + модель ${process.env.CHAT_MODEL || "qwen3:8b"}` : "только шаблоны (OLLAMA_BASE_URL не задан)"}`));
 }

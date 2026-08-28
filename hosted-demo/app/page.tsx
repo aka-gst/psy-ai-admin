@@ -57,7 +57,7 @@ export default function Home() {
   async function ask(value: string) {
     const clean = value.trim();
     if (!clean || isChecking) return;
-    const answer = routeQuestion(clean, lastSource) as { text: string; sourceKeys: SourceKey[]; kind: string };
+    const answer = (await routeQuestion(clean, lastSource)) as { text: string; sourceKeys: SourceKey[]; kind: string };
     const prepared = (preparedQuestions as ReviewQuestion[]).find((item) => item.question === clean);
     setMessages((current) => [...current, { who: "user", text: clean }, { who: "assistant", ...answer, questionId: prepared?.id }]);
     setQuery("");

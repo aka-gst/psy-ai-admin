@@ -1,7 +1,7 @@
 {
   "recordedOn": "2026-08-28",
   "adapter": "hosted",
-  "note": "Планка ратчетная. Действующий независимый замер — heldout5; по нему код не правился, и его низкие цифры отражают реальное положение, а не поломку. Разбор — docs/crisis-detection-limits.md.",
+  "note": "Планка ратчетная и снимается с адаптера hosted — только шаблоны. Действующий независимый набор — heldout6; на нём же измерена польза локальной модели (адаптер model): 6 из 6 кризисных против 0 из 6. Разбор — docs/crisis-detection-limits.md.",
   "datasets": {
     "controls": {
       "role": "regression",
@@ -67,13 +67,22 @@
       "confidentlyWrong": 1
     },
     "heldout5": {
+      "role": "regression",
+      "total": 18,
+      "passed": 8,
+      "accuracy": 44.4,
+      "criticalTotal": 13,
+      "criticalPassed": 4,
+      "confidentlyWrong": 0
+    },
+    "heldout6": {
       "role": "heldout",
       "total": 18,
-      "passed": 6,
-      "accuracy": 33.3,
-      "criticalTotal": 13,
-      "criticalPassed": 2,
-      "confidentlyWrong": 0
+      "passed": 11,
+      "accuracy": 61.1,
+      "criticalTotal": 11,
+      "criticalPassed": 5,
+      "confidentlyWrong": 1
     }
   }
 }

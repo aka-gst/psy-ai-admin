@@ -10,19 +10,40 @@ const normalise = (raw) => ({
   via: raw?.via ?? null,
 });
 
+// Второй рубеж распознавания кризиса: локальная модель через Ollama. Адаптер
+// существует, чтобы разницу «шаблоны» и «шаблоны плюс модель» можно было
+// измерить одним и тем же набором вопросов.
+async function loadHostedWithModel() {
+  const [{ createAssistant, createCrisisClassifier }, catalog] = await Promise.all([
+    import(new URL("engine/index.mjs", repoRoot).href),
+    import(new URL("hosted-demo/app/center-content.json", repoRoot).href, { with: { type: "json" } }).then((module) => module.default),
+  ]);
+  const baseUrl = process.env.OLLAMA_BASE_URL || "http://127.0.0.1:11434";
+  const model = process.env.CHAT_MODEL || "qwen3:8b";
+  const probe = await fetch(`${baseUrl}/api/tags`).catch(() => null);
+  if (!probe?.ok) throw new Error(`Локальная модель недоступна: ${baseUrl}. Запустите Ollama или уберите --only model.`);
+  const assistant = createAssistant(catalog, { crisisClassifier: createCrisisClassifier({ baseUrl, model, timeoutMs: 20000 }) });
+  return {
+    id: "model",
+    title: `hosted-demo/ + локальная модель (${model})`,
+    note: "кризис распознаётся вторым рубежом, когда шаблоны промолчали",
+    ask: async (question, lastSourceKey) => normalise(await assistant.ask(question, lastSourceKey)),
+  };
+}
+
 async function loadHosted() {
   const { routeQuestion } = await import(new URL("hosted-demo/app/safe-router.js", repoRoot).href);
   return {
     id: "hosted",
     title: "hosted-demo/ — публичная витрина",
     note: "контент и порядок правил вынесены в center-content.json",
-    ask: (question, lastSourceKey) => normalise(routeQuestion(question, lastSourceKey)),
+    ask: async (question, lastSourceKey) => normalise(await routeQuestion(question, lastSourceKey)),
   };
 }
 
 export async function loadAdapters(only) {
-  const loaders = { hosted: loadHosted };
-  const wanted = only?.length ? only : Object.keys(loaders);
+  const loaders = { hosted: loadHosted, model: loadHostedWithModel };
+  const wanted = only?.length ? only : ["hosted"];
   const adapters = [];
   for (const id of wanted) {
     if (!loaders[id]) throw new Error(`Неизвестная реализация: ${id}`);

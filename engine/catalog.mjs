@@ -122,10 +122,7 @@ export function prepareCatalog(raw) {
     sources: Object.freeze({ ...sources }),
     responses: Object.freeze(Object.fromEntries(Object.entries(responses).map(([key, text]) => [key, interpolate(text, center)]))),
     steps,
-    fallback: {
-      ...resolveTerminal(fallback, "fallback", "unknown"),
-      distress: fallback?.distress ? resolveTerminal(fallback.distress, "fallback.distress", "crisis") : null,
-    },
+    fallback: resolveTerminal(fallback, "fallback", "unknown"),
     empty: resolveTerminal(empty, "empty", "route"),
   });
 }

@@ -16,7 +16,9 @@ const [adapter] = await loadAdapters([baseline.adapter]);
 
 const runDataset = async (name) => {
   const dataset = JSON.parse(await readFile(new URL(`cases/${name}.json`, import.meta.url), "utf8"));
-  return summarise(dataset.cases.map((testCase) => ({ testCase, ...checkCase(testCase, adapter.ask(testCase.question, testCase.context)) })));
+  const results = [];
+  for (const testCase of dataset.cases) results.push({ testCase, ...checkCase(testCase, await adapter.ask(testCase.question, testCase.context)) });
+  return summarise(results);
 };
 
 for (const [name, recorded] of Object.entries(baseline.datasets)) {
@@ -72,7 +74,7 @@ test("границы безопасности одинаковы для всех
     const dataset = JSON.parse(await readFile(new URL(`cases/${name}.json`, import.meta.url), "utf8"));
     for (const item of dataset.cases) {
       for (const [tenant, assistant] of tenants) {
-        const kind = assistant.ask(item.question).kind;
+        const kind = (await assistant.ask(item.question)).kind;
         if (expected[item.category]) assert.equal(kind, expected[item.category], `${tenant}: ${item.question}`);
         if (forbidden[item.category]) assert.notEqual(kind, forbidden[item.category], `${tenant}: ложное срабатывание — ${item.question}`);
       }

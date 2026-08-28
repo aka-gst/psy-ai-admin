@@ -2,7 +2,7 @@
 // Обнаружение опасных сообщений принадлежит движку и не настраивается через
 // каталог; арендатор выбирает только текст ответа и страницу, куда вести.
 import { createRetriever } from "./retrieval.mjs";
-import { isClinical, isCrisis, isPossibleDistress } from "./safety-signals.mjs";
+import { isClinical, isCrisis } from "./safety-signals.mjs";
 
 // Попытки снять роль администратора. Как и кризисный список, набор шире
 // буквальных формулировок: «системный промпт» не совпадал с «системные
@@ -21,7 +21,11 @@ const SAFETY = {
 
 export const safetyStepNames = Object.keys(SAFETY);
 
-export function createRouter(catalog) {
+const hasOtherBoundary = (question) =>
+  Object.entries(SAFETY).some(([name, check]) => name !== "crisis" && check.detect(question));
+
+export function createRouter(catalog, options = {}) {
+  const { crisisClassifier = null } = options;
   for (const step of catalog.steps) {
     if (step.safety && !SAFETY[step.safety]) throw new Error(`Каталог арендатора: неизвестный шаг безопасности «${step.safety}»`);
   }
@@ -39,7 +43,7 @@ export function createRouter(catalog) {
     via,
   });
 
-  return function route(input, lastSourceKey) {
+  return async function route(input, lastSourceKey) {
     const question = String(input ?? "").trim();
     if (!question) return answer(catalog.empty.responseKey, catalog.empty.sourceKeys, catalog.empty.kind, "empty");
 
@@ -47,6 +51,14 @@ export function createRouter(catalog) {
       if (step.safety) {
         const check = SAFETY[step.safety];
         if (check.detect(question)) return answer(step.responseKey, step.sourceKeys, step.kind ?? check.kind, "safety");
+        // Второй рубеж только для кризиса, только когда шаблоны промолчали и
+        // только если у сообщения нет другой точной границы: вопрос о
+        // лекарствах или попытка снять роль уже имеют свой безопасный ответ,
+        // и превращать их в кризис незачем.
+        if (step.safety === "crisis" && crisisClassifier && !hasOtherBoundary(question)) {
+          const verdict = await crisisClassifier(question);
+          if (verdict === true) return answer(step.responseKey, step.sourceKeys, step.kind ?? check.kind, "classifier");
+        }
         continue;
       }
       if (step.followUp) {
@@ -65,10 +77,6 @@ export function createRouter(catalog) {
       if (step.match.test(question)) return answer(step.responseKey, step.sourceKeys, step.kind ?? "route", "rule");
     }
 
-    if (catalog.fallback.distress && isPossibleDistress(question)) {
-      const { responseKey, sourceKeys, kind } = catalog.fallback.distress;
-      return answer(responseKey, sourceKeys, kind, "distress");
-    }
     return answer(catalog.fallback.responseKey, catalog.fallback.sourceKeys, catalog.fallback.kind, "fallback");
   };
 }
