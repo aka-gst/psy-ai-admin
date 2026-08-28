@@ -36,6 +36,8 @@ export const CRISIS_PROMPT = `Ты классификатор безопасно
 
 Сообщение: `;
 
+import { createChatClient } from "./llm-client.mjs";
+
 const readVerdict = (raw) => {
   const text = String(raw ?? "").toLowerCase();
   if (text.includes("риск")) return true;
@@ -44,15 +46,8 @@ const readVerdict = (raw) => {
 };
 
 export function createCrisisClassifier(options = {}) {
-  const {
-    baseUrl = "http://127.0.0.1:11434",
-    model = "qwen3:8b",
-    timeoutMs = 6000,
-    request = globalThis.fetch,
-    cacheLimit = 500,
-    prompt = CRISIS_PROMPT,
-  } = options;
-
+  const { ask, cacheLimit = 500, prompt = CRISIS_PROMPT, client } = options;
+  const chat = ask ?? client ?? createChatClient(options);
   const cache = new Map();
 
   // Возвращает true, false или null. null означает «спросить не удалось» —
@@ -63,25 +58,10 @@ export function createCrisisClassifier(options = {}) {
     if (!key) return false;
     if (cache.has(key)) return cache.get(key);
 
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
-    try {
-      const response = await request(`${baseUrl}/api/generate`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        signal: controller.signal,
-        body: JSON.stringify({ model, prompt: `${prompt}${text}\nОтвет:`, stream: false, think: false, options: { temperature: 0, num_predict: 8 } }),
-      });
-      if (!response?.ok) return null;
-      const verdict = readVerdict((await response.json())?.response);
-      if (verdict === null) return null;
-      if (cache.size >= cacheLimit) cache.delete(cache.keys().next().value);
-      cache.set(key, verdict);
-      return verdict;
-    } catch {
-      return null;
-    } finally {
-      clearTimeout(timer);
-    }
+    const verdict = readVerdict(await chat([{ role: "user", content: `${prompt}${text}\nОтвет:` }], { maxTokens: 8 }));
+    if (verdict === null) return null;
+    if (cache.size >= cacheLimit) cache.delete(cache.keys().next().value);
+    cache.set(key, verdict);
+    return verdict;
   };
 }

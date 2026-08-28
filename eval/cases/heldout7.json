@@ -1,0 +1,40 @@
+{
+  "name": "heldout7",
+  "role": "heldout",
+  "title": "Седьмой отложенный набор — про маршрутизацию",
+  "purpose": "Предыдущие отложенные наборы перекошены в безопасность и слишком малы, чтобы мерить выбор страницы. Этот собран из организационных вопросов, чтобы сравнить перебор правил и выбор темы моделью на равных.",
+  "note": "Ни одна формулировка не участвовала в подсказках и не использовалась для правок.",
+  "cases": [
+    { "id": "h7-sch-01", "category": "Расписание", "question": "На какое число ближайший семинар?", "expect": { "source": "schedule" }, "severity": "normal" },
+    { "id": "h7-sch-02", "category": "Расписание", "question": "Какие события у вас в ноябре?", "expect": { "source": "schedule" }, "severity": "normal" },
+    { "id": "h7-sch-03", "category": "Расписание", "question": "До скольки длится вечерняя встреча?", "expect": { "source": "schedule" }, "severity": "normal" },
+    { "id": "h7-sch-04", "category": "Расписание", "question": "Куда смотреть, чтобы не пропустить новый набор?", "expect": { "source": "schedule" }, "severity": "normal" },
+    { "id": "h7-sch-05", "category": "Расписание", "question": "Проводите ли что-нибудь в дневное время?", "expect": { "source": "schedule" }, "severity": "normal" },
+
+    { "id": "h7-con-01", "category": "Консультации", "question": "Хочу разобраться в себе, с чего начать?", "expect": { "source": "consultation" }, "severity": "normal" },
+    { "id": "h7-con-02", "category": "Консультации", "question": "Принимают ли специалисты по выходным?", "expect": { "source": "consultation" }, "severity": "normal" },
+    { "id": "h7-con-03", "category": "Консультации", "question": "Можно ли обратиться анонимно?", "expect": { "source": "consultation" }, "severity": "normal" },
+    { "id": "h7-con-04", "category": "Консультации", "question": "Сколько длится один приём у психолога?", "expect": { "source": "consultation" }, "severity": "normal" },
+
+    { "id": "h7-edu-01", "category": "Обучение", "question": "Какие требования к поступающим на обучение?", "expect": { "source": "education" }, "severity": "normal" },
+    { "id": "h7-edu-02", "category": "Обучение", "question": "Есть ли занятия для практикующих психологов?", "expect": { "source": "education" }, "severity": "normal" },
+    { "id": "h7-edu-03", "category": "Обучение", "question": "Что такое процессуальная работа простыми словами?", "expect": { "source": "education" }, "severity": "normal" },
+
+    { "id": "h7-rnt-01", "category": "Аренда", "question": "Можно ли забронировать помещение на несколько дней?", "expect": { "source": "rental" }, "severity": "normal" },
+    { "id": "h7-rnt-02", "category": "Аренда", "question": "Какая техника есть в ваших помещениях?", "expect": { "source": "rental" }, "severity": "normal" },
+    { "id": "h7-rnt-03", "category": "Аренда", "question": "Сдаёте ли комнаты почасово?", "expect": { "source": "rental" }, "severity": "normal" },
+
+    { "id": "h7-clb-01", "category": "Клуб", "question": "Клуб идёт круглый год?", "expect": { "source": "club" }, "severity": "normal" },
+    { "id": "h7-clb-02", "category": "Клуб", "question": "Нужно ли что-то знать заранее, чтобы прийти в клуб?", "expect": { "source": "club" }, "severity": "normal" },
+
+    { "id": "h7-cnt-01", "category": "Контакты", "question": "Как с вами связаться вечером?", "expect": { "source": "home" }, "severity": "normal" },
+    { "id": "h7-cnt-02", "category": "Контакты", "question": "В каком районе города вы расположены?", "expect": { "source": "home" }, "severity": "normal" },
+    { "id": "h7-cnt-03", "category": "Контакты", "question": "Есть ли у вас страница в соцсетях?", "expect": { "source": "home" }, "severity": "normal" },
+
+    { "id": "h7-pay-01", "category": "Оплата и данные", "question": "Где прочитать правила отмены?", "expect": { "source": "offer" }, "severity": "normal" },
+    { "id": "h7-pay-02", "category": "Оплата и данные", "question": "Кто имеет доступ к моей заявке?", "expect": { "source": "policy" }, "severity": "normal" },
+
+    { "id": "h7-oos-01", "category": "Вне темы", "question": "Объясни, как работает блокчейн", "expect": { "kind": "unknown" }, "severity": "normal" },
+    { "id": "h7-oos-02", "category": "Вне темы", "question": "Сколько будет пятнадцать процентов от четырёх тысяч?", "expect": { "kind": "unknown" }, "severity": "normal" }
+  ]
+}

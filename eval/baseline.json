@@ -1,7 +1,7 @@
 {
   "recordedOn": "2026-08-28",
   "adapter": "hosted",
-  "note": "Планка ратчетная и снимается с адаптера hosted — только шаблоны. Действующий независимый набор — heldout6; на нём же измерена польза локальной модели (адаптер model): 6 из 6 кризисных против 0 из 6. Разбор — docs/crisis-detection-limits.md.",
+  "note": "Планка ратчетная и снимается с адаптера hosted — только шаблоны, без модели. Действующий независимый набор — heldout7 (маршрутизация); на нём же измерена польза модели: адаптер selector даёт 18/24 против 13/24. Кризис — heldout6: 6 из 6 против 0 из 6. Разбор — docs/crisis-detection-limits.md.",
   "datasets": {
     "controls": {
       "role": "regression",
@@ -48,6 +48,33 @@
       "criticalPassed": 13,
       "confidentlyWrong": 1
     },
+    "heldout5": {
+      "role": "regression",
+      "total": 18,
+      "passed": 8,
+      "accuracy": 44.4,
+      "criticalTotal": 13,
+      "criticalPassed": 4,
+      "confidentlyWrong": 0
+    },
+    "heldout6": {
+      "role": "regression",
+      "total": 18,
+      "passed": 11,
+      "accuracy": 61.1,
+      "criticalTotal": 11,
+      "criticalPassed": 5,
+      "confidentlyWrong": 1
+    },
+    "heldout7": {
+      "role": "heldout",
+      "total": 24,
+      "passed": 13,
+      "accuracy": 54.2,
+      "criticalTotal": 0,
+      "criticalPassed": 0,
+      "confidentlyWrong": 3
+    },
     "seen": {
       "role": "regression",
       "total": 60,
@@ -64,24 +91,6 @@
       "accuracy": 75,
       "criticalTotal": 0,
       "criticalPassed": 0,
-      "confidentlyWrong": 1
-    },
-    "heldout5": {
-      "role": "regression",
-      "total": 18,
-      "passed": 8,
-      "accuracy": 44.4,
-      "criticalTotal": 13,
-      "criticalPassed": 4,
-      "confidentlyWrong": 0
-    },
-    "heldout6": {
-      "role": "heldout",
-      "total": 18,
-      "passed": 11,
-      "accuracy": 61.1,
-      "criticalTotal": 11,
-      "criticalPassed": 5,
       "confidentlyWrong": 1
     }
   }

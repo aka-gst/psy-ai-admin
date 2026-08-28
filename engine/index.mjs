@@ -3,9 +3,16 @@
 // здесь, действует в обоих сразу.
 import { prepareCatalog } from "./catalog.mjs";
 import { createCrisisClassifier } from "./crisis-classifier.mjs";
+import { createChatClient, clientFromEnvironment } from "./llm-client.mjs";
+import { createTopicSelector } from "./topic-selector.mjs";
 import { createRouter, safetyStepNames } from "./router.mjs";
 
-export { prepareCatalog, safetyStepNames, createCrisisClassifier };
+export { prepareCatalog, safetyStepNames, createCrisisClassifier, createChatClient, clientFromEnvironment, createTopicSelector };
+
+// Темы для селектора берутся из тех же описаний источников, что и поиск.
+export const topicsFromCatalog = (catalog) => Object.entries(catalog.sources ?? {})
+  .filter(([, source]) => source.response)
+  .map(([key, source]) => ({ key, hint: [source.label, source.description, source.about].filter(Boolean).join(" ").slice(0, 240) }));
 export { isClinical, isCrisis, signalGroups } from "./safety-signals.mjs";
 
 export function createAssistant(rawCatalog, options = {}) {

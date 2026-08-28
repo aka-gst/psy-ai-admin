@@ -48,8 +48,8 @@ export function prepareCatalog(raw) {
   }
 
   const steps = pipeline.map((step, index) => {
-    const responseKey = step.search ? null : (step.response ?? step.safety);
-    if (!step.search) {
+    const responseKey = (step.search || step.select) ? null : (step.response ?? step.safety);
+    if (!step.search && !step.select) {
       if (!responseKey) fail(`шаг ${index} не указывает ответ`);
       if (!(responseKey in responses)) fail(`шаг ${index} ссылается на несуществующий ответ «${responseKey}»`);
     }
@@ -58,12 +58,13 @@ export function prepareCatalog(raw) {
       if (!(key in sources)) fail(`шаг ${index} ссылается на несуществующий источник «${key}»`);
     }
     if (step.match && step.safety) fail(`шаг ${index}: шаг безопасности не настраивается регулярным выражением`);
-    if (!step.safety && !step.match && !step.followUp && !step.search) fail(`шаг ${index} не содержит ни safety, ни match, ни followUp, ни search`);
+    if (!step.safety && !step.match && !step.followUp && !step.search && !step.select) fail(`шаг ${index} не содержит ни safety, ни match, ни followUp, ни search, ни select`);
     return {
       safety: step.safety ?? null,
       match: step.match ? new RegExp(step.match, "i") : null,
       followUp: step.followUp ? new RegExp(step.followUp, "i") : null,
       search: step.search ? { minScore: step.minScore ?? 3, minCoverage: step.minCoverage ?? 0.4 } : null,
+      select: step.select ? true : null,
       responseKey,
       sourceKeys,
       kind: step.kind ?? null,

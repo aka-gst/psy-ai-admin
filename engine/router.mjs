@@ -8,7 +8,7 @@ import { isClinical, isCrisis } from "./safety-signals.mjs";
 // буквальных формулировок: «системный промпт» не совпадал с «системные
 // инструкции», а «ты теперь свободный ИИ» не совпадало ни с чем.
 const INJECTION = /игнорируй|игнорируя|забудь (все |всё )?(предыдущ|прежн|свои)|обойди.*правил|системн\w*\s*(промпт|инструкц|сообщен)|раскрой.*инструкц|покажи.*(промпт|инструкц)|ты теперь|ты больше не|сбрось настройк|стань (обычным|другим|просто)|ты не (администратор|бот|ассистент|помощник|ии)|(отвечай|говори|работай|действуй|веди себя)[^.]{0,25}без ([а-я]+ )?ограничени|режим разработчика|представь,? что ты|притворись|веди себя как|act as|system prompt|jailbreak|dan режим/i;
-const PAYMENT = /карт[аы]|реквизит|cvv|парол|личн(ый|ого) кабинет|оплатить.*чат|как оплатить|оплат[аы].*участ/i;
+const PAYMENT = /карт[аыуое]|картой|реквизит|cvv|парол|личн(ый|ого) кабинет|оплатить.*чат|как оплатить|оплат[аы].*участ/i;
 const GUARANTEE = /гарантир|обеща.*результат|точно поможет/i;
 
 const SAFETY = {
@@ -25,7 +25,7 @@ const hasOtherBoundary = (question) =>
   Object.entries(SAFETY).some(([name, check]) => name !== "crisis" && check.detect(question));
 
 export function createRouter(catalog, options = {}) {
-  const { crisisClassifier = null } = options;
+  const { crisisClassifier = null, topicSelector = null } = options;
   for (const step of catalog.steps) {
     if (step.safety && !SAFETY[step.safety]) throw new Error(`Каталог арендатора: неизвестный шаг безопасности «${step.safety}»`);
   }
@@ -72,6 +72,13 @@ export function createRouter(catalog, options = {}) {
           if (prepared && confirmed) return { text: prepared, sourceKeys: [sourceKey], kind: step.kind ?? "route", via: "faq" };
           return answer(catalog.sources[sourceKey].response, [sourceKey], step.kind ?? "route", "search");
         }
+        continue;
+      }
+      if (step.select) {
+        // Модель называет раздел, текст ответа остаётся утверждённым.
+        const key = topicSelector ? await topicSelector(question) : null;
+        const source = key ? catalog.sources[key] : null;
+        if (source?.response) return answer(source.response, [key], step.kind ?? "route", "selector");
         continue;
       }
       if (step.match.test(question)) return answer(step.responseKey, step.sourceKeys, step.kind ?? "route", "rule");

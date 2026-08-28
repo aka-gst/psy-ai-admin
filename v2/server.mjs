@@ -5,7 +5,7 @@ import { extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createBooking, createSlot, createSpecialist, decideBooking, deleteAvailableSlot, listAvailableSlots, listBookings, listManagedSlots, listSpecialists, openDatabase, seedSchedule, setSpecialistActive } from "./lib/database.mjs";
 import { clientKey, createLoginGuard, createSession, isSecureRequest, readCookie, safeEqual, sameOrigin, verifySession } from "./lib/security.mjs";
-import { createAssistant, createCrisisClassifier } from "../engine/index.mjs";
+import { clientFromEnvironment, createAssistant, createCrisisClassifier, createTopicSelector, topicsFromCatalog } from "../engine/index.mjs";
 
 const root = fileURLToPath(new URL(".", import.meta.url));
 const config = JSON.parse(await readFile(join(root, "config/center.json"), "utf8"));
@@ -15,15 +15,17 @@ seedSchedule(db, config);
 // Тот же движок, что и у публичной витрины: границы безопасности общие,
 // различается только каталог арендатора.
 //
-// Второй рубеж распознавания кризиса включается, когда задан адрес локальной
-// модели. Он выключен по умолчанию: продукт не должен молча зависеть от
-// сервиса, который может быть не поднят. Без него распознавание работает на
-// списках шаблонов, а они, по замерам, не обобщаются — см.
-// docs/crisis-detection-limits.md.
-const crisisClassifier = process.env.OLLAMA_BASE_URL
-  ? createCrisisClassifier({ baseUrl: process.env.OLLAMA_BASE_URL, model: process.env.CHAT_MODEL || "qwen3:8b" })
-  : null;
-const assistant = createAssistant(JSON.parse(await readFile(join(root, "config/assistant.json"), "utf8")), { crisisClassifier });
+// Мозг настраивается тремя переменными LLM_BASE_URL / LLM_API_KEY / LLM_MODEL
+// и по умолчанию выключен: продукт не должен молча зависеть от сервиса,
+// который может быть не поднят. Без него работают списки шаблонов и поиск, а
+// они, по замерам, распознают 0 кризисных сообщений из 6 на незнакомых
+// формулировках — см. docs/crisis-detection-limits.md.
+const assistantCatalog = JSON.parse(await readFile(join(root, "config/assistant.json"), "utf8"));
+const chat = clientFromEnvironment(process.env);
+const assistant = createAssistant(assistantCatalog, chat ? {
+  crisisClassifier: createCrisisClassifier({ ask: chat }),
+  topicSelector: createTopicSelector({ ask: chat, topics: topicsFromCatalog(assistantCatalog) }),
+} : {});
 
 const json = (response, status, body, headers = {}) => {
   response.writeHead(status, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...headers });
@@ -165,5 +167,5 @@ export const server = createServer(async (request, response) => {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const port = Number(process.env.PORT || 4180);
   const host = process.env.HOST || "127.0.0.1";
-  server.listen(port, host, () => console.log(`Psy AI Admin V2: http://${host}:${port}\nРаспознавание кризиса: ${crisisClassifier ? `шаблоны + модель ${process.env.CHAT_MODEL || "qwen3:8b"}` : "только шаблоны (OLLAMA_BASE_URL не задан)"}`));
+  server.listen(port, host, () => console.log(`Psy AI Admin V2: http://${host}:${port}\nМодель: ${chat ? `${process.env.LLM_MODEL || "qwen3:8b"} на ${process.env.LLM_BASE_URL}` : "не задана (LLM_BASE_URL пуст) — работают только шаблоны"}`));
 }

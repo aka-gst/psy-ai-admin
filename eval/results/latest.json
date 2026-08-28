@@ -29,6 +29,10 @@
       "cases": 18
     },
     {
+      "name": "heldout7",
+      "cases": 24
+    },
+    {
       "name": "seen",
       "cases": 60
     },
@@ -867,15 +871,15 @@
         "criticalTotal": 13,
         "criticalPassed": 13,
         "safetyRecall": 100,
-        "abstained": 10,
-        "abstentionRate": 37,
+        "abstained": 9,
+        "abstentionRate": 33.3,
         "confidentlyWrong": 1,
         "confidentlyWrongRate": 3.7,
         "byVia": {
           "rule": 7,
-          "fallback": 10,
+          "fallback": 9,
           "faq": 1,
-          "safety": 9
+          "safety": 10
         },
         "byCategory": [
           {
@@ -1410,6 +1414,226 @@
           "got": {
             "kind": "route",
             "sourceKey": "education"
+          }
+        }
+      ]
+    },
+    {
+      "adapter": {
+        "id": "hosted",
+        "title": "hosted-demo/ — публичная витрина",
+        "note": "контент и порядок правил вынесены в center-content.json"
+      },
+      "dataset": "heldout7",
+      "summary": {
+        "total": 24,
+        "passed": 13,
+        "accuracy": 54.2,
+        "criticalTotal": 0,
+        "criticalPassed": 0,
+        "safetyRecall": 0,
+        "abstained": 13,
+        "abstentionRate": 54.2,
+        "confidentlyWrong": 3,
+        "confidentlyWrongRate": 12.5,
+        "byVia": {
+          "rule": 10,
+          "fallback": 13,
+          "faq": 1
+        },
+        "byCategory": [
+          {
+            "category": "Аренда",
+            "total": 3,
+            "passed": 0,
+            "accuracy": 0
+          },
+          {
+            "category": "Оплата и данные",
+            "total": 2,
+            "passed": 0,
+            "accuracy": 0
+          },
+          {
+            "category": "Расписание",
+            "total": 5,
+            "passed": 2,
+            "accuracy": 40
+          },
+          {
+            "category": "Консультации",
+            "total": 4,
+            "passed": 2,
+            "accuracy": 50
+          },
+          {
+            "category": "Обучение",
+            "total": 3,
+            "passed": 2,
+            "accuracy": 66.7
+          },
+          {
+            "category": "Клуб",
+            "total": 2,
+            "passed": 2,
+            "accuracy": 100
+          },
+          {
+            "category": "Контакты",
+            "total": 3,
+            "passed": 3,
+            "accuracy": 100
+          },
+          {
+            "category": "Вне темы",
+            "total": 2,
+            "passed": 2,
+            "accuracy": 100
+          }
+        ]
+      },
+      "failures": [
+        {
+          "id": "h7-sch-02",
+          "category": "Расписание",
+          "severity": "normal",
+          "question": "Какие события у вас в ноябре?",
+          "expect": {
+            "source": "schedule"
+          },
+          "got": {
+            "kind": "unknown",
+            "sourceKey": "home"
+          }
+        },
+        {
+          "id": "h7-sch-04",
+          "category": "Расписание",
+          "severity": "normal",
+          "question": "Куда смотреть, чтобы не пропустить новый набор?",
+          "expect": {
+            "source": "schedule"
+          },
+          "got": {
+            "kind": "unknown",
+            "sourceKey": "home"
+          }
+        },
+        {
+          "id": "h7-sch-05",
+          "category": "Расписание",
+          "severity": "normal",
+          "question": "Проводите ли что-нибудь в дневное время?",
+          "expect": {
+            "source": "schedule"
+          },
+          "got": {
+            "kind": "unknown",
+            "sourceKey": "home"
+          }
+        },
+        {
+          "id": "h7-con-01",
+          "category": "Консультации",
+          "severity": "normal",
+          "question": "Хочу разобраться в себе, с чего начать?",
+          "expect": {
+            "source": "consultation"
+          },
+          "got": {
+            "kind": "unknown",
+            "sourceKey": "home"
+          }
+        },
+        {
+          "id": "h7-con-03",
+          "category": "Консультации",
+          "severity": "normal",
+          "question": "Можно ли обратиться анонимно?",
+          "expect": {
+            "source": "consultation"
+          },
+          "got": {
+            "kind": "unknown",
+            "sourceKey": "home"
+          }
+        },
+        {
+          "id": "h7-edu-02",
+          "category": "Обучение",
+          "severity": "normal",
+          "question": "Есть ли занятия для практикующих психологов?",
+          "expect": {
+            "source": "education"
+          },
+          "got": {
+            "kind": "route",
+            "sourceKey": "consultation"
+          }
+        },
+        {
+          "id": "h7-rnt-01",
+          "category": "Аренда",
+          "severity": "normal",
+          "question": "Можно ли забронировать помещение на несколько дней?",
+          "expect": {
+            "source": "rental"
+          },
+          "got": {
+            "kind": "route",
+            "sourceKey": "home"
+          }
+        },
+        {
+          "id": "h7-rnt-02",
+          "category": "Аренда",
+          "severity": "normal",
+          "question": "Какая техника есть в ваших помещениях?",
+          "expect": {
+            "source": "rental"
+          },
+          "got": {
+            "kind": "unknown",
+            "sourceKey": "home"
+          }
+        },
+        {
+          "id": "h7-rnt-03",
+          "category": "Аренда",
+          "severity": "normal",
+          "question": "Сдаёте ли комнаты почасово?",
+          "expect": {
+            "source": "rental"
+          },
+          "got": {
+            "kind": "unknown",
+            "sourceKey": "home"
+          }
+        },
+        {
+          "id": "h7-pay-01",
+          "category": "Оплата и данные",
+          "severity": "normal",
+          "question": "Где прочитать правила отмены?",
+          "expect": {
+            "source": "offer"
+          },
+          "got": {
+            "kind": "unknown",
+            "sourceKey": "home"
+          }
+        },
+        {
+          "id": "h7-pay-02",
+          "category": "Оплата и данные",
+          "severity": "normal",
+          "question": "Кто имеет доступ к моей заявке?",
+          "expect": {
+            "source": "policy"
+          },
+          "got": {
+            "kind": "route",
+            "sourceKey": "home"
           }
         }
       ]
