@@ -151,28 +151,7 @@ export default function Home() {
         <h1>{uiCopy.headlineMain}<br /><em>{uiCopy.headlineAccent}</em></h1>
         <p className="lead">{uiCopy.lead}</p>
         <div className="notice">{uiCopy.privacyNotice}</div>
-        <div className="choices">
-          <button onClick={() => inputRef.current?.focus()}><b>Спросить помощника</b><span>Получить ответ по открытым страницам прямо сейчас</span></button>
-          <a href={center.officialSiteUrl} target="_blank" rel="noreferrer"><b>Связаться с центром</b><span>Открыть официальный сайт и контакты администратора</span></a>
-        </div>
       </header>
-
-      <section className="demo-guide" aria-label="Инструкция проверки демо">
-        <div className="demo-status">
-          <span><b>{preparedQuestions.length}</b> готовых сценариев</span>
-          <span><b>{Object.keys(sources).length}</b> официальных страниц</span>
-          <span><b>0</b> сохраняемых сообщений</span>
-        </div>
-        <details>
-          <summary>{uiCopy.guideTitle}</summary>
-          <p>{uiCopy.guideIntro}</p>
-          <ol>
-            {demoGuide.map((step: { title: string; text: string }) => (
-              <li key={step.title}><b>{step.title}</b><span>{step.text}</span></li>
-            ))}
-          </ol>
-        </details>
-      </section>
 
       <section className="chat" aria-label="Демонстрационный чат">
         <div className="bar"><b>Организационный вопрос</b><button onClick={() => { setMessages([greeting]); setLastSource(undefined); }}>Начать заново</button></div>
@@ -203,6 +182,37 @@ export default function Home() {
             <button key={item.label} onClick={() => void ask(item.question)}>{item.label}</button>
           ))}
         </div>
+        <form onSubmit={submit}>
+          <label className="sr-only" htmlFor="question">Вопрос помощнику</label>
+          <input ref={inputRef} id="question" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Например: Где посмотреть расписание?" autoComplete="off" required />
+          <button disabled={isChecking}>{isChecking ? "Проверяю…" : "Получить ответ"}</button>
+        </form>
+        <p className="emergency" role="note">{uiCopy.emergencyNotice}</p>
+        <a className="official" href={center.officialSiteUrl} target="_blank" rel="noreferrer">Официальный сайт центра и контакты администратора →</a>
+      </section>
+
+      {/* Инструменты проверки убраны под раскрытие: они нужны тому, кто демо
+          проверяет, и мешают тому, кто пытается понять, что это такое. */}
+      <details className="review-mode">
+        <summary>{uiCopy.reviewModeTitle}</summary>
+        <p className="review-mode-intro">{uiCopy.reviewModeIntro}</p>
+
+        <div className="demo-status">
+          <span><b>{preparedQuestions.length}</b> готовых сценариев</span>
+          <span><b>{Object.keys(sources).length}</b> официальных страниц</span>
+          <span><b>0</b> сохраняемых сообщений</span>
+        </div>
+
+        <div className="demo-guide">
+          <b>{uiCopy.guideTitle}</b>
+          <p>{uiCopy.guideIntro}</p>
+          <ol>
+            {demoGuide.map((step: { title: string; text: string }) => (
+              <li key={step.title}><b>{step.title}</b><span>{step.text}</span></li>
+            ))}
+          </ol>
+        </div>
+
         <div className="prepared">
           <div>
             <b>{uiCopy.preparedTitle}</b>
@@ -221,6 +231,7 @@ export default function Home() {
             <button type="button" disabled={!selectedQuestion || isChecking} onClick={() => void ask(selectedQuestion)}>Проверить вопрос</button>
           </div>
         </div>
+
         <div className="health">
           <div>
             <b>{uiCopy.healthTitle}</b>
@@ -241,40 +252,34 @@ export default function Home() {
             </div>
           )}
         </div>
-        <form onSubmit={submit}>
-          <label className="sr-only" htmlFor="question">Вопрос помощнику</label>
-          <input ref={inputRef} id="question" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Например: Где посмотреть расписание?" autoComplete="off" required />
-          <button disabled={isChecking}>{isChecking ? "Проверяю…" : "Получить ответ"}</button>
-        </form>
-        <p className="emergency" role="note">{uiCopy.emergencyNotice}</p>
-      </section>
 
-      <section className="review-results" aria-labelledby="review-results-title">
-        <div className="review-heading">
-          <div><p>ЛОКАЛЬНЫЙ РЕЖИМ ПРОВЕРКИ</p><h2 id="review-results-title">Результаты проверки</h2></div>
-          {reviewCounts.reviewed > 0 && <div className="review-actions">
-            <button className="copy-review" onClick={() => void copyReviewSummary()}>Скопировать итог</button>
-            <button onClick={clearReview}>Сбросить оценки</button>
-          </div>}
-        </div>
-        <p>Оценки сохраняются только в этом браузере. Тексты вопросов, сообщения и контакты никуда не отправляются.</p>
-        {copyStatus !== "idle" && <p className={`copy-status ${copyStatus}`} role="status">
-          {copyStatus === "copied" ? "Итог скопирован — его можно отправить разработчику." : "Не удалось скопировать автоматически. Разрешите доступ к буферу обмена и попробуйте снова."}
-        </p>}
-        <div className="review-stats">
-          <span><b>{reviewCounts.reviewed}</b> из {preparedQuestions.length} проверено</span>
-          <span><b>{reviewCounts.correct}</b> верно</span>
-          <span><b>{reviewCounts.fix}</b> исправить</span>
-          <span><b>{reviewCounts.missing}</b> не хватает ответа</span>
-        </div>
-        {flaggedQuestions.length > 0 ? (
-          <ul>{flaggedQuestions.map((item) => (
-            <li key={item.id}><span>{feedback[item.id] === "fix" ? "Исправить" : "Не хватает"}</span>{item.question}</li>
-          ))}</ul>
-        ) : (
-          <div className="review-empty">Выберите вопрос из списка, получите ответ и поставьте оценку.</div>
-        )}
-      </section>
+        <section className="review-results" aria-labelledby="review-results-title">
+          <div className="review-heading">
+            <div><p>ЛОКАЛЬНЫЙ РЕЖИМ ПРОВЕРКИ</p><h2 id="review-results-title">Результаты проверки</h2></div>
+            {reviewCounts.reviewed > 0 && <div className="review-actions">
+              <button className="copy-review" onClick={() => void copyReviewSummary()}>Скопировать итог</button>
+              <button onClick={clearReview}>Сбросить оценки</button>
+            </div>}
+          </div>
+          <p>Оценки сохраняются только в этом браузере. Тексты вопросов, сообщения и контакты никуда не отправляются.</p>
+          {copyStatus !== "idle" && <p className={`copy-status ${copyStatus}`} role="status">
+            {copyStatus === "copied" ? "Итог скопирован — его можно отправить разработчику." : "Не удалось скопировать автоматически. Разрешите доступ к буферу обмена и попробуйте снова."}
+          </p>}
+          <div className="review-stats">
+            <span><b>{reviewCounts.reviewed}</b> из {preparedQuestions.length} проверено</span>
+            <span><b>{reviewCounts.correct}</b> верно</span>
+            <span><b>{reviewCounts.fix}</b> исправить</span>
+            <span><b>{reviewCounts.missing}</b> не хватает ответа</span>
+          </div>
+          {flaggedQuestions.length > 0 ? (
+            <ul>{flaggedQuestions.map((item) => (
+              <li key={item.id}><span>{feedback[item.id] === "fix" ? "Исправить" : "Не хватает"}</span>{item.question}</li>
+            ))}</ul>
+          ) : (
+            <div className="review-empty">Выберите вопрос из списка, получите ответ и поставьте оценку.</div>
+          )}
+        </section>
+      </details>
 
       <footer><span>Проект не связан с центром «{center.name}».</span><span>Используются только открытые страницы.</span><span>Реальные заявки не отправляются.</span></footer>
     </main>

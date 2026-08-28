@@ -116,7 +116,6 @@ test("published build renders the real product instead of starter content", { sk
   const html = await response.text();
   assert.equal(response.status, 200);
   assert.match(html, /AI-администратор/);
-  assert.match(html, /Спросить помощника/);
   assert.match(html, /60 готовых проверочных вопросов/);
   assert.match(html, /Проверка официальных ссылок/);
   assert.match(html, /Как проверить демо за 3 минуты/);
@@ -125,6 +124,17 @@ test("published build renders the real product instead of starter content", { sk
   assert.match(html, /112/);
   assert.match(html, /не оказывает помощи/);
   assert.match(html, /Оценки сохраняются только в этом браузере/);
+
+  // Первый экран объясняет продукт, инструменты проверки лежат под раскрытием.
+  // Порядок в разметке и есть проверяемое свойство: всё, что нужно для аудита,
+  // идёт после <details>, а поле ввода и предупреждение — до него.
+  const details = html.indexOf("<details");
+  assert.ok(details > 0, "инструменты проверки должны быть в раскрывающемся блоке");
+  assert.ok(html.indexOf('id="question"') < details, "поле ввода должно быть на первом экране");
+  assert.ok(html.indexOf("не оказывает помощи") < details, "предупреждение должно быть на первом экране");
+  for (const audit of ["60 готовых проверочных вопросов", "Проверка официальных ссылок", "Результаты проверки", "Как проверить демо за 3 минуты"]) {
+    assert.ok(html.indexOf(audit) > details, `«${audit}» не должно занимать первый экран`);
+  }
   assert.doesNotMatch(html, /Официальная страница доступна и проверена по вашему запросу/);
   assert.doesNotMatch(html, /Your site is taking shape|Building your site/);
 });

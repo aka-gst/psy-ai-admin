@@ -11,18 +11,14 @@ h1 { margin: 25px 0 20px; font: clamp(42px, 8vw, 86px)/.94 Georgia, serif; lette
 h1 em { color: #66529e; font-style: normal; }
 .lead { max-width: 700px; margin: 0 0 26px; color: #515568; font-size: 18px; line-height: 1.55; }
 .notice { margin: 0 0 14px; padding: 15px 17px; background: #fff2e8; border-left: 4px solid #d58e64; line-height: 1.45; }
-.choices { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
-.choices button, .choices a { display: grid; gap: 6px; min-height: 78px; padding: 16px; border: 1px solid #c9bfdf; border-radius: 14px; background: #fff; color: #484161; text-align: left; text-decoration: none; cursor: pointer; }
-.choices button { background: #66529e; color: #fff; border-color: #66529e; }
-.choices span, .messages a span { font-size: 13px; line-height: 1.35; }
-.demo-guide { display: grid; gap: 10px; margin-bottom: 16px; }
+.messages a span { font-size: 13px; line-height: 1.35; }
+.demo-guide { display: grid; gap: 10px; padding: 14px 16px; border: 1px solid #d8d0e9; border-radius: 14px; background: #f8f5ff; }
+.demo-guide > b { color: #463765; }
 .demo-status { display: grid; grid-template-columns: repeat(3, 1fr); overflow: hidden; border: 1px solid #ded9d0; border-radius: 14px; background: #fff; }
 .demo-status span { display: flex; align-items: baseline; gap: 6px; padding: 13px 15px; color: #656170; font-size: 13px; }
 .demo-status span + span { border-left: 1px solid #e8e3da; }
 .demo-status b { color: #4f3d78; font-size: 18px; }
-.demo-guide details { padding: 14px 16px; border: 1px solid #d8d0e9; border-radius: 14px; background: #f8f5ff; }
-.demo-guide summary { color: #463765; font-weight: 700; cursor: pointer; }
-.demo-guide details > p { margin: 12px 0; color: #625d6c; font-size: 14px; line-height: 1.45; }
+.demo-guide > p { margin: 0; color: #625d6c; font-size: 14px; line-height: 1.45; }
 .demo-guide ol { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 0; padding: 0; list-style: none; counter-reset: guide; }
 .demo-guide li { display: grid; align-content: start; gap: 6px; padding: 12px; border: 1px solid #dfd7ee; border-radius: 10px; background: #fff; counter-increment: guide; }
 .demo-guide li b::before { content: counter(guide) ". "; color: #735ca5; }
@@ -39,7 +35,7 @@ h1 em { color: #66529e; font-style: normal; }
 .messages small { display: block; margin-top: 9px; color: #686274; }
 .messages .availability { font-size: 11px; line-height: 1.35; }
 .messages a { display: grid; gap: 4px; margin-top: 12px; padding: 14px; border: 1px solid #cabfe2; border-radius: 10px; background: #fff; color: #402c71; text-decoration: none; }
-.messages a:hover, .choices a:hover { border-color: #7058a9; }
+.messages a:hover { border-color: #7058a9; }
 .answer-review { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 12px; padding-top: 11px; border-top: 1px solid #d8cfea; }
 .answer-review span { width: 100%; color: #666071; font-size: 12px; }
 .answer-review button { padding: 7px 9px; border: 1px solid #c8bddf; border-radius: 99px; background: #fff; color: #4d3d70; font-size: 12px; cursor: pointer; }
@@ -118,3 +114,12 @@ footer { display: flex; flex-wrap: wrap; gap: 8px 22px; padding: 20px 4px 0; col
 /* Предупреждение видно всегда, а не только в ответе на распознанный кризис:
    распознавание не даёт полноты, на которую можно опереться вместо него. */
 .emergency{margin:12px 0 0;padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.5;color:var(--ink-soft,#5e5d70);background:color-mix(in srgb,currentColor 6%,transparent);border:1px solid color-mix(in srgb,currentColor 18%,transparent)}
+/* Инструменты проверки открываются по желанию: первый экран должен объяснять
+   продукт, а не предлагать его аудит. */
+.review-mode { margin-top: 20px; padding: 16px 18px; border: 1px solid #ded9d0; border-radius: 18px; background: #fbf9f6; }
+.review-mode > summary { font-weight: 700; color: #463765; cursor: pointer; }
+.review-mode[open] > summary { margin-bottom: 6px; }
+.review-mode > * + * { margin-top: 14px; }
+.review-mode-intro { max-width: 700px; margin: 0; color: #65606c; font-size: 13px; line-height: 1.45; }
+.official { display: inline-block; margin-top: 12px; color: #66529e; font-size: 14px; font-weight: 600; text-decoration: none; }
+.official:hover { text-decoration: underline; }
