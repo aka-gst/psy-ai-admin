@@ -30,3 +30,26 @@ form.addEventListener('submit', async (event) => {
 });
 
 load().catch(() => { slot.innerHTML = '<option value="">Не удалось загрузить расписание</option>'; });
+
+const askForm = document.querySelector('#ask-form');
+const answer = document.querySelector('#answer');
+let lastSourceKey = '';
+
+askForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const question = document.querySelector('#question');
+  const response = await fetch('/api/ask', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ question: question.value, lastSourceKey }) });
+  const data = await response.json();
+  answer.hidden = false;
+  if (!response.ok) { answer.className = 'answer'; answer.textContent = data.error; return; }
+  lastSourceKey = data.sourceKeys[0] || lastSourceKey;
+  answer.className = `answer ${data.kind === 'crisis' || data.kind === 'boundary' ? data.kind : ''}`.trim();
+  answer.textContent = data.text;
+  for (const source of data.sources) {
+    const link = document.createElement('a');
+    link.href = source.url;
+    link.textContent = source.label;
+    answer.append(link);
+  }
+  question.value = '';
+});

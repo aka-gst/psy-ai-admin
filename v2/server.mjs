@@ -5,11 +5,16 @@ import { extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createBooking, createSlot, createSpecialist, decideBooking, deleteAvailableSlot, listAvailableSlots, listBookings, listManagedSlots, listSpecialists, openDatabase, seedSchedule, setSpecialistActive } from "./lib/database.mjs";
 import { createSession, readCookie, sameOrigin, verifySession } from "./lib/security.mjs";
+import { createAssistant } from "../engine/index.mjs";
 
 const root = fileURLToPath(new URL(".", import.meta.url));
 const config = JSON.parse(await readFile(join(root, "config/center.json"), "utf8"));
 const db = openDatabase(process.env.DATABASE_PATH || join(root, "data/booking.sqlite"));
 seedSchedule(db, config);
+
+// Тот же движок, что и у публичной витрины: границы безопасности общие,
+// различается только каталог арендатора.
+const assistant = createAssistant(JSON.parse(await readFile(join(root, "config/assistant.json"), "utf8")));
 
 const json = (response, status, body, headers = {}) => {
   response.writeHead(status, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...headers });
@@ -50,6 +55,14 @@ export const server = createServer(async (request, response) => {
   try {
     if (request.method === "GET" && url.pathname === "/api/config") return json(response, 200, { centerName: config.centerName, bookingNotice: config.bookingNotice, consentText: config.consentText });
     if (request.method === "GET" && url.pathname === "/api/slots") return json(response, 200, { slots: listAvailableSlots(db) });
+    if (request.method === "POST" && url.pathname === "/api/ask") {
+      // Вопрос нигде не сохраняется: ни в базе, ни в журнале сервера.
+      const body = await parseBody(request);
+      const question = clean(body.question, 500);
+      if (!question) return json(response, 400, { error: "Напишите вопрос." });
+      const answer = assistant.ask(question, clean(body.lastSourceKey, 40) || undefined);
+      return json(response, 200, { text: answer.text, kind: answer.kind, sourceKeys: answer.sourceKeys, sources: answer.sourceKeys.map((key) => assistant.sources[key]) });
+    }
     if (request.method === "POST" && url.pathname === "/api/bookings") {
       const body = await parseBody(request);
       const input = { slotId: Number(body.slotId), clientName: clean(body.clientName, 80), contact: clean(body.contact, 160), contactType: body.contactType };

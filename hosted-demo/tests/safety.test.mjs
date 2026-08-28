@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import test from "node:test";
 import { center, quickQuestions, responses, uiCopy } from "../app/content.js";
 import { preparedQuestions, routeQuestion, sources } from "../app/safe-router.js";
-import { isClinical, isCrisis } from "../app/safety-signals.js";
+import { isClinical, isCrisis } from "../../engine/index.mjs";
 
 test("crisis response directs to immediate human help without continuing navigation", () => {
   const answer = routeQuestion("У меня мысли о самоубийстве");

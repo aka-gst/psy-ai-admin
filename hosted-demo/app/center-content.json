@@ -25,9 +25,18 @@
     "guideIntro": "Начните с готовых сценариев, затем задайте свой организационный вопрос и в конце проверьте официальные ссылки."
   },
   "demoGuide": [
-    { "title": "Выберите готовый вопрос", "text": "В списке собраны все сценарии, для которых уже подготовлен и автоматически проверен безопасный маршрут." },
-    { "title": "Задайте свой вопрос", "text": "Если точного сценария пока нет, помощник честно сообщит об этом и направит на официальный сайт." },
-    { "title": "Проверьте ссылки", "text": "Отдельная кнопка покажет доступность всех открытых страниц, не сохраняя их содержимое." }
+    {
+      "title": "Выберите готовый вопрос",
+      "text": "В списке собраны все сценарии, для которых уже подготовлен и автоматически проверен безопасный маршрут."
+    },
+    {
+      "title": "Задайте свой вопрос",
+      "text": "Если точного сценария пока нет, помощник честно сообщит об этом и направит на официальный сайт."
+    },
+    {
+      "title": "Проверьте ссылки",
+      "text": "Отдельная кнопка покажет доступность всех открытых страниц, не сохраняя их содержимое."
+    }
   ],
   "responses": {
     "empty": "Напишите организационный вопрос о центре.",
@@ -53,14 +62,194 @@
     "unknown": "Точного ответа в проверенных сценариях демо пока нет. Можно открыть официальный сайт или задать администратору центра организационный вопрос."
   },
   "sources": {
-    "schedule": { "label": "Открыть актуальное расписание", "description": "Даты, формат и регистрация на официальной странице", "url": "https://orion-center.ru/schedule", "dynamic": true },
-    "consultation": { "label": "Открыть консультации", "description": "Форматы консультаций и специалисты центра", "url": "https://orion-center.ru/consultation" },
-    "club": { "label": "Открыть страницу клуба", "description": "Описание встреч и регистрация", "url": "https://orion-center.ru/psycluborion", "dynamic": true },
-    "education": { "label": "Открыть ProcessWork", "description": "Направление и образовательные форматы", "url": "https://orion-center.ru/pweducation" },
-    "rental": { "label": "Открыть аренду залов", "description": "Помещения и официальный способ оставить запрос", "url": "https://orion-center.ru/services", "dynamic": true },
-    "programs": { "label": "Открыть все программы", "description": "Обучение, семинары и направления", "url": "https://orion-center.ru/programs" },
-    "policy": { "label": "Открыть политику конфиденциальности", "description": "Официальные правила обработки данных", "url": "https://orion-center.ru/privacy" },
-    "offer": { "label": "Открыть публичную оферту", "description": "Официальные условия оплаты и возврата", "url": "https://orion-center.ru/publicoferta" },
-    "home": { "label": "Открыть сайт «Орион-С»", "description": "Контакты и все открытые разделы центра", "url": "https://orion-center.ru/" }
+    "schedule": {
+      "label": "Открыть актуальное расписание",
+      "description": "Даты, формат и регистрация на официальной странице",
+      "url": "https://orion-center.ru/schedule",
+      "dynamic": true
+    },
+    "consultation": {
+      "label": "Открыть консультации",
+      "description": "Форматы консультаций и специалисты центра",
+      "url": "https://orion-center.ru/consultation"
+    },
+    "club": {
+      "label": "Открыть страницу клуба",
+      "description": "Описание встреч и регистрация",
+      "url": "https://orion-center.ru/psycluborion",
+      "dynamic": true
+    },
+    "education": {
+      "label": "Открыть ProcessWork",
+      "description": "Направление и образовательные форматы",
+      "url": "https://orion-center.ru/pweducation"
+    },
+    "rental": {
+      "label": "Открыть аренду залов",
+      "description": "Помещения и официальный способ оставить запрос",
+      "url": "https://orion-center.ru/services",
+      "dynamic": true
+    },
+    "programs": {
+      "label": "Открыть все программы",
+      "description": "Обучение, семинары и направления",
+      "url": "https://orion-center.ru/programs"
+    },
+    "policy": {
+      "label": "Открыть политику конфиденциальности",
+      "description": "Официальные правила обработки данных",
+      "url": "https://orion-center.ru/privacy"
+    },
+    "offer": {
+      "label": "Открыть публичную оферту",
+      "description": "Официальные условия оплаты и возврата",
+      "url": "https://orion-center.ru/publicoferta"
+    },
+    "home": {
+      "label": "Открыть сайт «Орион-С»",
+      "description": "Контакты и все открытые разделы центра",
+      "url": "https://orion-center.ru/"
+    }
+  },
+  "pipeline": [
+    {
+      "safety": "crisis"
+    },
+    {
+      "safety": "injection",
+      "sources": [
+        "home"
+      ]
+    },
+    {
+      "match": "вернут|возврат|оферт|услови.*оплат",
+      "response": "refund",
+      "sources": [
+        "offer"
+      ]
+    },
+    {
+      "match": "храните|переписк|конфиденциальн|персональн.*данн|политик",
+      "response": "privacy",
+      "sources": [
+        "policy"
+      ]
+    },
+    {
+      "safety": "payment",
+      "sources": [
+        "home"
+      ]
+    },
+    {
+      "safety": "clinical",
+      "sources": [
+        "consultation"
+      ]
+    },
+    {
+      "safety": "guarantee",
+      "sources": [
+        "consultation"
+      ]
+    },
+    {
+      "match": "адрес|где (?:вы|наход)|как добрат|метро",
+      "response": "address",
+      "sources": [
+        "home"
+      ],
+      "kind": "fact"
+    },
+    {
+      "match": "^она онлайн|^она очно|онлайн или очно",
+      "response": "eventFormat",
+      "sources": [
+        "schedule"
+      ]
+    },
+    {
+      "followUp": "^(она|он|они|там|эт[ао]|сколько|когда|формат|очно|онлайн|стоимость|цена|регистрац)",
+      "response": "context"
+    },
+    {
+      "match": "распис|мероприят|ближайш|когда|дата|мест[ао]|семинар",
+      "response": "schedule",
+      "sources": [
+        "schedule"
+      ]
+    },
+    {
+      "match": "клуб|вечер с польз",
+      "response": "club",
+      "sources": [
+        "club"
+      ]
+    },
+    {
+      "match": "аренд|зал|кабинет|тренинг.*мест",
+      "response": "rental",
+      "sources": [
+        "rental"
+      ]
+    },
+    {
+      "match": "process|процесс|обуч|учиться|программ|образован|документ|диплом|сертифик",
+      "response": "education",
+      "sources": [
+        "education",
+        "programs"
+      ]
+    },
+    {
+      "match": "консультац|(?:^|[^а-яё])психолог|онлайн|специалист|реб[её]нк|дет(?:и|ей|ьми)",
+      "response": "consultation",
+      "sources": [
+        "consultation"
+      ]
+    },
+    {
+      "match": "записа|заявк|хочу прийти|забронировать",
+      "response": "booking",
+      "sources": [
+        "home"
+      ]
+    },
+    {
+      "match": "телефон|позвонить|номер",
+      "response": "phone",
+      "sources": [
+        "home"
+      ],
+      "kind": "fact"
+    },
+    {
+      "match": "почт|e-?mail|написать",
+      "response": "email",
+      "sources": [
+        "home"
+      ],
+      "kind": "fact"
+    },
+    {
+      "match": "контакт",
+      "response": "contacts",
+      "sources": [
+        "home"
+      ],
+      "kind": "fact"
+    }
+  ],
+  "fallback": {
+    "response": "unknown",
+    "sources": [
+      "home"
+    ],
+    "kind": "unknown"
+  },
+  "empty": {
+    "response": "empty",
+    "sources": [],
+    "kind": "route"
   }
 }

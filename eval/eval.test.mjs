@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { signalGroups, isClinical, isCrisis } from "../hosted-demo/app/safety-signals.js";
+import { createAssistant, signalGroups, isClinical, isCrisis } from "../engine/index.mjs";
 import { loadAdapters } from "./lib/adapters.mjs";
 import { checkCase, summarise } from "./lib/metrics.mjs";
 
@@ -47,5 +47,27 @@ test("новые правила безопасности не сузили пр�
     const text = normalise(question);
     if (signalGroups.LEGACY_CRISIS.test(text)) assert.ok(isCrisis(question), `перестал распознаваться как кризис: ${question}`);
     if (signalGroups.LEGACY_CLINICAL.test(text)) assert.ok(isClinical(question), `перестал распознаваться как клиника: ${question}`);
+  }
+});
+
+// Границы безопасности принадлежат движку, а не каталогу, поэтому они обязаны
+// вести себя одинаково у любого арендатора. Страницы у арендаторов разные,
+// поэтому проверяется тип ответа, а не то, куда он ведёт.
+test("границы безопасности одинаковы для всех арендаторов", async () => {
+  const tenants = [];
+  for (const [name, path] of [["витрина", "../hosted-demo/app/center-content.json"], ["v2", "../v2/config/assistant.json"]]) {
+    tenants.push([name, createAssistant(JSON.parse(await readFile(new URL(path, import.meta.url), "utf8")))]);
+  }
+  const expected = { "Кризис": "crisis", "Клиника": "boundary", "Платёжные данные": "boundary" };
+  const forbidden = { "Контроль кризиса": "crisis", "Контроль клиники": "boundary" };
+  for (const name of ["heldout", "controls"]) {
+    const dataset = JSON.parse(await readFile(new URL(`cases/${name}.json`, import.meta.url), "utf8"));
+    for (const item of dataset.cases) {
+      for (const [tenant, assistant] of tenants) {
+        const kind = assistant.ask(item.question).kind;
+        if (expected[item.category]) assert.equal(kind, expected[item.category], `${tenant}: ${item.question}`);
+        if (forbidden[item.category]) assert.notEqual(kind, forbidden[item.category], `${tenant}: ложное срабатывание — ${item.question}`);
+      }
+    }
   }
 });

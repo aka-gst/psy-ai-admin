@@ -44,9 +44,12 @@ export default defineConfig(async () => {
   const { cloudflare } = await import("@cloudflare/vite-plugin");
 
   return {
-    server: isCodexSeatbeltSandbox
-      ? { watch: { useFsEvents: false, usePolling: true } }
-      : undefined,
+    // Общий движок лежит на уровень выше витрины, в engine/ монорепозитория:
+    // dev-серверу нужно разрешение читать за пределами собственного корня.
+    server: {
+      fs: { allow: [".."] },
+      ...(isCodexSeatbeltSandbox ? { watch: { useFsEvents: false, usePolling: true } } : {}),
+    },
     plugins: [
       vinext(),
       sites(),
