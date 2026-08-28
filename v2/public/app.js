@@ -12,6 +12,9 @@ async function load() {
   document.title = `Запись — ${config.centerName}`;
   document.querySelector('#consent-text').textContent = config.consentText;
   notice.textContent = config.bookingNotice;
+  // Видно всегда: распознавание кризиса не даёт полноты, на которую можно
+  // опереться вместо постоянного предупреждения.
+  document.querySelector('#emergency-notice').textContent = config.emergencyNotice;
   slot.innerHTML = '<option value="">Выберите дату, время и специалиста</option>' + slots.map((item) => `<option value="${item.id}">${formatSlot(item)}</option>`).join('');
 }
 

@@ -53,3 +53,11 @@ test("вопросы не попадают в базу заявок", async () =
   const db = openDatabase(process.env.DATABASE_PATH);
   assert.deepEqual(listBookings(db), []);
 });
+
+test("предупреждение об экстренной помощи отдаётся страницей всегда, а не по распознаванию", async () => {
+  const config = await (await fetch(`${origin}/api/config`)).json();
+  assert.match(config.emergencyNotice, /112/);
+  assert.match(config.emergencyNotice, /не оказывает помощи/);
+  const page = await (await fetch(`${origin}/`)).text();
+  assert.match(page, /id="emergency-notice"/);
+});

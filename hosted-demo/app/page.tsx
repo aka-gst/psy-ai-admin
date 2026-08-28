@@ -246,6 +246,7 @@ export default function Home() {
           <input ref={inputRef} id="question" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Например: Где посмотреть расписание?" autoComplete="off" required />
           <button disabled={isChecking}>{isChecking ? "Проверяю…" : "Получить ответ"}</button>
         </form>
+        <p className="emergency" role="note">{uiCopy.emergencyNotice}</p>
       </section>
 
       <section className="review-results" aria-labelledby="review-results-title">

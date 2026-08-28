@@ -115,3 +115,6 @@ footer { display: flex; flex-wrap: wrap; gap: 8px 22px; padding: 20px 4px 0; col
   .review-stats span:nth-child(3) { border-top: 1px solid #e2ddd5; border-left: 0; }
   .review-stats span:nth-child(4) { border-top: 1px solid #e2ddd5; }
 }
+/* Предупреждение видно всегда, а не только в ответе на распознанный кризис:
+   распознавание не даёт полноты, на которую можно опереться вместо него. */
+.emergency{margin:12px 0 0;padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.5;color:var(--ink-soft,#5e5d70);background:color-mix(in srgb,currentColor 6%,transparent);border:1px solid color-mix(in srgb,currentColor 18%,transparent)}

@@ -62,7 +62,7 @@ async function serveStatic(pathname, response) {
 export const server = createServer(async (request, response) => {
   const url = new URL(request.url, `http://${request.headers.host || "localhost"}`);
   try {
-    if (request.method === "GET" && url.pathname === "/api/config") return json(response, 200, { centerName: config.centerName, bookingNotice: config.bookingNotice, consentText: config.consentText });
+    if (request.method === "GET" && url.pathname === "/api/config") return json(response, 200, { centerName: config.centerName, bookingNotice: config.bookingNotice, consentText: config.consentText, emergencyNotice: assistant.responses.emergencyNotice });
     if (request.method === "GET" && url.pathname === "/api/slots") return json(response, 200, { slots: listAvailableSlots(db) });
     if (request.method === "POST" && url.pathname === "/api/ask") {
       // Вопрос нигде не сохраняется: ни в базе, ни в журнале сервера.

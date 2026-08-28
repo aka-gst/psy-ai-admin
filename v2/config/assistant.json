@@ -4,7 +4,11 @@
     "emergencyNumber": "112"
   },
   "sources": {
-    "booking": { "label": "Перейти к форме записи", "description": "Свободное время и заявка менеджеру", "url": "/" }
+    "booking": {
+      "label": "Перейти к форме записи",
+      "description": "Свободное время и заявка менеджеру",
+      "url": "/"
+    }
   },
   "responses": {
     "crisis": "Если есть риск причинить вред себе или кому-то, пожалуйста, прямо сейчас позвоните {{emergencyNumber}} или в местные экстренные службы и обратитесь к человеку рядом. Этот чат не является экстренной помощью и не передаёт сообщения дежурному специалисту.",
@@ -18,20 +22,83 @@
     "data": "В заявке сохраняются только имя, один контакт и выбранный слот. Вопросы в этом чате никуда не записываются.",
     "specialists": "Специалисты и их свободное время перечислены в списке слотов формы записи.",
     "unknown": "Точного ответа у помощника по записи нет. Он отвечает про свободное время, порядок заявки и данные, которые она сохраняет.",
-    "empty": "Напишите вопрос про запись: свободное время, порядок заявки или какие данные она сохраняет."
+    "empty": "Напишите вопрос про запись: свободное время, порядок заявки или какие данные она сохраняет.",
+    "emergencyNotice": "Помощник по записи не оказывает помощи и не распознаёт состояние человека надёжно. Если есть риск для жизни — своей или чужой — звоните {{emergencyNumber}} или в местные экстренные службы."
   },
   "pipeline": [
-    { "safety": "crisis" },
-    { "safety": "injection", "sources": ["booking"] },
-    { "safety": "payment", "sources": ["booking"] },
-    { "safety": "clinical", "sources": ["booking"] },
-    { "safety": "guarantee", "sources": ["booking"] },
-    { "match": "перенест|отмен|отказ|не смогу прийти", "response": "change", "sources": ["booking"] },
-    { "match": "данн|храните|контакт|согласи|персональн", "response": "data", "sources": ["booking"] },
-    { "match": "свободн|слот|распис|время|когда|дата|ближайш", "response": "slots", "sources": ["booking"] },
-    { "match": "специалист|психолог|кто ведет|кто ведёт", "response": "specialists", "sources": ["booking"] },
-    { "match": "записа|заявк|забронировать|как попаст|хочу прийти", "response": "howBooking", "sources": ["booking"] }
+    {
+      "safety": "crisis"
+    },
+    {
+      "safety": "injection",
+      "sources": [
+        "booking"
+      ]
+    },
+    {
+      "safety": "payment",
+      "sources": [
+        "booking"
+      ]
+    },
+    {
+      "safety": "clinical",
+      "sources": [
+        "booking"
+      ]
+    },
+    {
+      "safety": "guarantee",
+      "sources": [
+        "booking"
+      ]
+    },
+    {
+      "match": "перенест|отмен|отказ|не смогу прийти",
+      "response": "change",
+      "sources": [
+        "booking"
+      ]
+    },
+    {
+      "match": "данн|храните|контакт|согласи|персональн",
+      "response": "data",
+      "sources": [
+        "booking"
+      ]
+    },
+    {
+      "match": "свободн|слот|распис|время|когда|дата|ближайш",
+      "response": "slots",
+      "sources": [
+        "booking"
+      ]
+    },
+    {
+      "match": "специалист|психолог|кто ведет|кто ведёт",
+      "response": "specialists",
+      "sources": [
+        "booking"
+      ]
+    },
+    {
+      "match": "записа|заявк|забронировать|как попаст|хочу прийти",
+      "response": "howBooking",
+      "sources": [
+        "booking"
+      ]
+    }
   ],
-  "fallback": { "response": "unknown", "sources": ["booking"], "kind": "unknown" },
-  "empty": { "response": "empty", "sources": [], "kind": "route" }
+  "fallback": {
+    "response": "unknown",
+    "sources": [
+      "booking"
+    ],
+    "kind": "unknown"
+  },
+  "empty": {
+    "response": "empty",
+    "sources": [],
+    "kind": "route"
+  }
 }

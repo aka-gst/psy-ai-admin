@@ -76,6 +76,9 @@ test("center settings and response copy are complete and separated from routing 
   assert.equal(new URL(center.officialSiteUrl).protocol, "https:");
   assert.ok(center.name && center.address && center.phone && center.email && center.emergencyNumber);
   assert.ok(Object.values(uiCopy).every((value) => typeof value === "string" && value.length > 0));
+  // Предупреждение должно называть номер, а не оставлять шаблон подстановки.
+  assert.match(uiCopy.emergencyNotice, new RegExp(center.emergencyNumber));
+  assert.ok(Object.values(uiCopy).every((value) => !value.includes("{{")));
   assert.ok(Object.values(responses).every((value) => typeof value === "string" && value.length > 0));
   const routerSource = await readFile(new URL("../app/safe-router.js", import.meta.url), "utf8");
   const editableCatalog = JSON.parse(await readFile(new URL("../app/center-content.json", import.meta.url), "utf8"));
@@ -119,6 +122,8 @@ test("published build renders the real product instead of starter content", { sk
   assert.match(html, /Как проверить демо за 3 минуты/);
   assert.match(html, /0<\/b> сохраняемых сообщений/);
   assert.match(html, /Результаты проверки/);
+  assert.match(html, /112/);
+  assert.match(html, /не оказывает помощи/);
   assert.match(html, /Оценки сохраняются только в этом браузере/);
   assert.doesNotMatch(html, /Официальная страница доступна и проверена по вашему запросу/);
   assert.doesNotMatch(html, /Your site is taking shape|Building your site/);

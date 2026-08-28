@@ -3,14 +3,15 @@
 import catalog from "./center-content.json" with { type: "json" };
 
 export const center = catalog.center;
-export const uiCopy = catalog.uiCopy;
+
 export const demoGuide = catalog.demoGuide;
 export const sources = catalog.sources;
 
 const interpolate = (value) => value.replace(/\{\{(\w+)\}\}/g, (_, key) => center[key] ?? "");
-export const responses = Object.fromEntries(
-  Object.entries(catalog.responses).map(([key, value]) => [key, interpolate(value)]),
-);
+const interpolateAll = (section) => Object.fromEntries(Object.entries(section).map(([key, value]) => [key, interpolate(value)]));
+
+export const uiCopy = interpolateAll(catalog.uiCopy);
+export const responses = interpolateAll(catalog.responses);
 
 export const quickQuestions = [
   { label: "Ближайшие мероприятия", question: "Какие мероприятия ближайшие?" },
