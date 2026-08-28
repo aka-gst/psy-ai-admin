@@ -8,7 +8,6 @@ data/private/
 artifacts/private/
 reference/orion-center-public-snapshot/
 demo/public-content-index.js
-hosted-demo/
 v2/data/
 *.log
 .DS_Store
