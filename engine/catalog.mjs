@@ -23,6 +23,7 @@ export function prepareCatalog(raw) {
 
   const { center, sources, responses, pipeline, fallback, empty } = raw ?? {};
   const extraDocuments = raw?.documents ?? [];
+  const faq = raw?.faq ?? [];
   if (!center || typeof center !== "object") fail("отсутствует раздел center");
   if (!sources || typeof sources !== "object") fail("отсутствует раздел sources");
   if (!responses || typeof responses !== "object") fail("отсутствует раздел responses");
@@ -83,13 +84,28 @@ export function prepareCatalog(raw) {
   // попадает в репозиторий и не обязателен для работы.
   const documents = Object.entries(sources)
     .filter(([, source]) => source.about)
-    .map(([sourceKey, source]) => ({ sourceKey, text: [source.label, source.description, source.about].filter(Boolean).join(" ") }));
+    .map(([sourceKey, source]) => ({ sourceKey, text: [source.label, source.description, source.about].filter(Boolean).join(" "), answer: null, confirmed: false }));
+  // Ответ FAQ произносится только после подтверждения владельцем контента.
+  // Неподтверждённая запись всё равно помогает найти нужную страницу, но
+  // ответом становится обычный текст этой страницы: неподтверждённое не
+  // выдаётся как достоверное — это свойство движка, а не дисциплины редактора.
+  for (const entry of faq) {
+    if (!(entry.source in sources)) fail(`запись FAQ «${entry.id ?? "?"}» ссылается на несуществующий источник «${entry.source}»`);
+    if (!sources[entry.source].response) fail(`у источника «${entry.source}» есть запись FAQ, но не указан ответ`);
+    if (!entry.text?.trim()) fail(`запись FAQ «${entry.id ?? "?"}» пуста`);
+    documents.push({
+      sourceKey: entry.source,
+      text: [entry.text, entry.about].filter(Boolean).join(" "),
+      answer: entry.text,
+      confirmed: entry.confirmed === true,
+    });
+  }
   for (const document of extraDocuments) {
     if (!(document.source in sources)) fail(`documents ссылается на несуществующий источник «${document.source}»`);
     if (!sources[document.source].response) fail(`у источника «${document.source}» есть документ, но не указан ответ`);
-    const existing = documents.find((item) => item.sourceKey === document.source);
+    const existing = documents.find((item) => item.sourceKey === document.source && !item.answer);
     if (existing) existing.text += ` ${document.text}`;
-    else documents.push({ sourceKey: document.source, text: document.text });
+    else documents.push({ sourceKey: document.source, text: document.text, answer: null, confirmed: false });
   }
   if (steps.some((step) => step.search) && !documents.length) fail("шаг search есть, а описаний about у источников нет");
 

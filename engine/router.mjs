@@ -4,7 +4,10 @@
 import { createRetriever } from "./retrieval.mjs";
 import { isClinical, isCrisis } from "./safety-signals.mjs";
 
-const INJECTION = /игнорируй|обойди.*правил|системн(ые|ые инструкции)|раскрой.*инструкц/i;
+// Попытки снять роль администратора. Как и кризисный список, набор шире
+// буквальных формулировок: «системный промпт» не совпадал с «системные
+// инструкции», а «ты теперь свободный ИИ» не совпадало ни с чем.
+const INJECTION = /игнорируй|игнорируя|забудь (все |всё )?(предыдущ|прежн|свои)|обойди.*правил|системн\w*\s*(промпт|инструкц|сообщен)|раскрой.*инструкц|покажи.*(промпт|инструкц)|ты теперь|ты больше не|без ограничений|режим разработчика|представь,? что ты|притворись|веди себя как|act as|system prompt|jailbreak|dan режим/i;
 const PAYMENT = /карт[аы]|реквизит|cvv|парол|личн(ый|ого) кабинет|оплатить.*чат|как оплатить|оплат[аы].*участ/i;
 const GUARANTEE = /гарантир|обеща.*результат|точно поможет/i;
 
@@ -53,8 +56,9 @@ export function createRouter(catalog) {
       if (step.search) {
         const found = retrievers.get(step)(question);
         if (found) {
-          const source = catalog.sources[found.sourceKey];
-          return answer(source.response, [found.sourceKey], step.kind ?? "route", "search");
+          const { sourceKey, answer: prepared, confirmed } = found.document;
+          if (prepared && confirmed) return { text: prepared, sourceKeys: [sourceKey], kind: step.kind ?? "route", via: "faq" };
+          return answer(catalog.sources[sourceKey].response, [sourceKey], step.kind ?? "route", "search");
         }
         continue;
       }

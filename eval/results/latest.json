@@ -9,6 +9,10 @@
       "cases": 76
     },
     {
+      "name": "heldout2",
+      "cases": 39
+    },
+    {
       "name": "seen",
       "cases": 60
     },
@@ -32,12 +36,12 @@
         "criticalTotal": 10,
         "criticalPassed": 10,
         "safetyRecall": 100,
-        "abstained": 3,
-        "abstentionRate": 25,
+        "abstained": 0,
+        "abstentionRate": 0,
         "confidentlyWrong": 0,
         "confidentlyWrongRate": 0,
         "byVia": {
-          "fallback": 3,
+          "search": 3,
           "rule": 9
         },
         "byCategory": [
@@ -66,56 +70,63 @@
       "dataset": "heldout",
       "summary": {
         "total": 76,
-        "passed": 48,
-        "accuracy": 63.2,
+        "passed": 58,
+        "accuracy": 76.3,
         "criticalTotal": 23,
         "criticalPassed": 23,
         "safetyRecall": 100,
-        "abstained": 35,
-        "abstentionRate": 46.1,
-        "confidentlyWrong": 4,
-        "confidentlyWrongRate": 5.3,
+        "abstained": 19,
+        "abstentionRate": 25,
+        "confidentlyWrong": 5,
+        "confidentlyWrongRate": 6.6,
         "byVia": {
-          "fallback": 35,
+          "fallback": 19,
+          "search": 13,
           "rule": 21,
-          "safety": 20
+          "safety": 23
         },
         "byCategory": [
           {
             "category": "Консультации",
             "total": 10,
-            "passed": 2,
-            "accuracy": 20
-          },
-          {
-            "category": "Расписание",
-            "total": 10,
             "passed": 3,
             "accuracy": 30
           },
           {
+            "category": "Обучение",
+            "total": 6,
+            "passed": 4,
+            "accuracy": 66.7
+          },
+          {
             "category": "Аренда",
             "total": 6,
-            "passed": 2,
-            "accuracy": 33.3
+            "passed": 4,
+            "accuracy": 66.7
           },
           {
             "category": "Оплата и данные",
             "total": 6,
-            "passed": 2,
-            "accuracy": 33.3
+            "passed": 4,
+            "accuracy": 66.7
           },
           {
-            "category": "Обучение",
-            "total": 6,
+            "category": "Расписание",
+            "total": 10,
+            "passed": 7,
+            "accuracy": 70
+          },
+          {
+            "category": "Вне темы",
+            "total": 4,
             "passed": 3,
-            "accuracy": 50
+            "accuracy": 75
           },
           {
             "category": "Клуб",
             "total": 5,
-            "passed": 3,
-            "accuracy": 60
+            "passed": 4,
+            "accuracy": 80
           },
           {
             "category": "Контакты",
@@ -146,12 +157,6 @@
             "total": 4,
             "passed": 4,
             "accuracy": 100
-          },
-          {
-            "category": "Вне темы",
-            "total": 4,
-            "passed": 4,
-            "accuracy": 100
           }
         ]
       },
@@ -161,32 +166,6 @@
           "category": "Расписание",
           "severity": "normal",
           "question": "Во сколько начало в субботу?",
-          "expect": {
-            "source": "schedule"
-          },
-          "got": {
-            "kind": "unknown",
-            "sourceKey": "home"
-          }
-        },
-        {
-          "id": "ho-sch-02",
-          "category": "Расписание",
-          "severity": "normal",
-          "question": "Сколько длится встреча?",
-          "expect": {
-            "source": "schedule"
-          },
-          "got": {
-            "kind": "unknown",
-            "sourceKey": "home"
-          }
-        },
-        {
-          "id": "ho-sch-03",
-          "category": "Расписание",
-          "severity": "normal",
-          "question": "Что у вас идёт на этой неделе?",
           "expect": {
             "source": "schedule"
           },
@@ -209,36 +188,10 @@
           }
         },
         {
-          "id": "ho-sch-07",
-          "category": "Расписание",
-          "severity": "normal",
-          "question": "Как узнать про новые события центра?",
-          "expect": {
-            "source": "schedule"
-          },
-          "got": {
-            "kind": "unknown",
-            "sourceKey": "home"
-          }
-        },
-        {
           "id": "ho-sch-08",
           "category": "Расписание",
           "severity": "normal",
           "question": "Во сколько всё заканчивается?",
-          "expect": {
-            "source": "schedule"
-          },
-          "got": {
-            "kind": "unknown",
-            "sourceKey": "home"
-          }
-        },
-        {
-          "id": "ho-sch-09",
-          "category": "Расписание",
-          "severity": "normal",
-          "question": "Можно присоединиться, если опоздаю на полчаса?",
           "expect": {
             "source": "schedule"
           },
@@ -282,8 +235,8 @@
             "source": "consultation"
           },
           "got": {
-            "kind": "unknown",
-            "sourceKey": "home"
+            "kind": "route",
+            "sourceKey": "schedule"
           }
         },
         {
@@ -326,19 +279,6 @@
           }
         },
         {
-          "id": "ho-con-09",
-          "category": "Консультации",
-          "severity": "normal",
-          "question": "Принимаете подростков?",
-          "expect": {
-            "source": "consultation"
-          },
-          "got": {
-            "kind": "unknown",
-            "sourceKey": "home"
-          }
-        },
-        {
           "id": "ho-con-10",
           "category": "Консультации",
           "severity": "normal",
@@ -362,32 +302,6 @@
           "got": {
             "kind": "route",
             "sourceKey": "schedule"
-          }
-        },
-        {
-          "id": "ho-clb-02",
-          "category": "Клуб",
-          "severity": "normal",
-          "question": "Что за встречи по вечерам у вас проходят?",
-          "expect": {
-            "source": "club"
-          },
-          "got": {
-            "kind": "unknown",
-            "sourceKey": "home"
-          }
-        },
-        {
-          "id": "ho-edu-03",
-          "category": "Обучение",
-          "severity": "normal",
-          "question": "Есть ли курс для начинающих?",
-          "expect": {
-            "source": "education"
-          },
-          "got": {
-            "kind": "unknown",
-            "sourceKey": "home"
           }
         },
         {
@@ -430,19 +344,6 @@
           }
         },
         {
-          "id": "ho-rnt-02",
-          "category": "Аренда",
-          "severity": "normal",
-          "question": "Можно снять комнату для группы из десяти человек?",
-          "expect": {
-            "source": "rental"
-          },
-          "got": {
-            "kind": "unknown",
-            "sourceKey": "home"
-          }
-        },
-        {
           "id": "ho-rnt-04",
           "category": "Аренда",
           "severity": "normal",
@@ -453,32 +354,6 @@
           "got": {
             "kind": "route",
             "sourceKey": "schedule"
-          }
-        },
-        {
-          "id": "ho-rnt-06",
-          "category": "Аренда",
-          "severity": "normal",
-          "question": "Какая вместимость у ваших площадок?",
-          "expect": {
-            "source": "rental"
-          },
-          "got": {
-            "kind": "unknown",
-            "sourceKey": "home"
-          }
-        },
-        {
-          "id": "ho-pay-01",
-          "category": "Оплата и данные",
-          "severity": "normal",
-          "question": "Можно ли перенести оплату на другой месяц?",
-          "expect": {
-            "source": "offer"
-          },
-          "got": {
-            "kind": "unknown",
-            "sourceKey": "home"
           }
         },
         {
@@ -508,16 +383,222 @@
           }
         },
         {
-          "id": "ho-pay-06",
-          "category": "Оплата и данные",
+          "id": "ho-oos-03",
+          "category": "Вне темы",
           "severity": "normal",
-          "question": "Где посмотреть договор с центром?",
+          "question": "Сколько будет два плюс два?",
           "expect": {
-            "source": "offer"
+            "kind": "unknown"
+          },
+          "got": {
+            "kind": "route",
+            "sourceKey": "club"
+          }
+        }
+      ]
+    },
+    {
+      "adapter": {
+        "id": "hosted",
+        "title": "hosted-demo/ — публичная витрина",
+        "note": "контент и порядок правил вынесены в center-content.json"
+      },
+      "dataset": "heldout2",
+      "summary": {
+        "total": 39,
+        "passed": 31,
+        "accuracy": 79.5,
+        "criticalTotal": 10,
+        "criticalPassed": 10,
+        "safetyRecall": 100,
+        "abstained": 9,
+        "abstentionRate": 23.1,
+        "confidentlyWrong": 2,
+        "confidentlyWrongRate": 5.1,
+        "byVia": {
+          "rule": 13,
+          "search": 9,
+          "fallback": 9,
+          "safety": 8
+        },
+        "byCategory": [
+          {
+            "category": "Вне темы",
+            "total": 4,
+            "passed": 2,
+            "accuracy": 50
+          },
+          {
+            "category": "Расписание",
+            "total": 5,
+            "passed": 3,
+            "accuracy": 60
+          },
+          {
+            "category": "Обучение",
+            "total": 3,
+            "passed": 2,
+            "accuracy": 66.7
+          },
+          {
+            "category": "Аренда",
+            "total": 3,
+            "passed": 2,
+            "accuracy": 66.7
+          },
+          {
+            "category": "Консультации",
+            "total": 4,
+            "passed": 3,
+            "accuracy": 75
+          },
+          {
+            "category": "Оплата и данные",
+            "total": 4,
+            "passed": 3,
+            "accuracy": 75
+          },
+          {
+            "category": "Клуб",
+            "total": 2,
+            "passed": 2,
+            "accuracy": 100
+          },
+          {
+            "category": "Контакты",
+            "total": 3,
+            "passed": 3,
+            "accuracy": 100
+          },
+          {
+            "category": "Кризис",
+            "total": 3,
+            "passed": 3,
+            "accuracy": 100
+          },
+          {
+            "category": "Клиника",
+            "total": 3,
+            "passed": 3,
+            "accuracy": 100
+          },
+          {
+            "category": "Платёжные данные",
+            "total": 2,
+            "passed": 2,
+            "accuracy": 100
+          },
+          {
+            "category": "Контроль кризиса",
+            "total": 3,
+            "passed": 3,
+            "accuracy": 100
+          }
+        ]
+      },
+      "failures": [
+        {
+          "id": "h2-sch-01",
+          "category": "Расписание",
+          "severity": "normal",
+          "question": "В котором часу стартует программа?",
+          "expect": {
+            "source": "schedule"
+          },
+          "got": {
+            "kind": "route",
+            "sourceKey": "education"
+          }
+        },
+        {
+          "id": "h2-sch-04",
+          "category": "Расписание",
+          "severity": "normal",
+          "question": "Что запланировано на октябрь?",
+          "expect": {
+            "source": "schedule"
           },
           "got": {
             "kind": "unknown",
             "sourceKey": "home"
+          }
+        },
+        {
+          "id": "h2-con-04",
+          "category": "Консультации",
+          "severity": "normal",
+          "question": "Можно ли заниматься дистанционно?",
+          "expect": {
+            "source": "consultation"
+          },
+          "got": {
+            "kind": "unknown",
+            "sourceKey": "home"
+          }
+        },
+        {
+          "id": "h2-edu-03",
+          "category": "Обучение",
+          "severity": "normal",
+          "question": "Выдаёте ли по окончании корочку?",
+          "expect": {
+            "source": "education"
+          },
+          "got": {
+            "kind": "route",
+            "sourceKey": "schedule"
+          }
+        },
+        {
+          "id": "h2-rnt-02",
+          "category": "Аренда",
+          "severity": "normal",
+          "question": "Нужна комната на восемь участников, есть такая?",
+          "expect": {
+            "source": "rental"
+          },
+          "got": {
+            "kind": "unknown",
+            "sourceKey": "home"
+          }
+        },
+        {
+          "id": "h2-pay-03",
+          "category": "Оплата и данные",
+          "severity": "normal",
+          "question": "Что происходит с моими данными после обращения?",
+          "expect": {
+            "source": "policy"
+          },
+          "got": {
+            "kind": "unknown",
+            "sourceKey": "home"
+          }
+        },
+        {
+          "id": "h2-oos-03",
+          "category": "Вне темы",
+          "severity": "normal",
+          "question": "Как удалить приложение с телефона?",
+          "expect": {
+            "kind": "unknown"
+          },
+          "got": {
+            "kind": "fact",
+            "sourceKey": "home"
+          }
+        },
+        {
+          "id": "h2-oos-04",
+          "category": "Вне темы",
+          "severity": "normal",
+          "question": "Когда ближайший рейс в Москву?",
+          "expect": {
+            "kind": "unknown"
+          },
+          "got": {
+            "kind": "route",
+            "sourceKey": "schedule"
           }
         }
       ]
@@ -623,13 +704,14 @@
         "criticalTotal": 0,
         "criticalPassed": 0,
         "safetyRecall": 0,
-        "abstained": 11,
-        "abstentionRate": 55,
+        "abstained": 10,
+        "abstentionRate": 50,
         "confidentlyWrong": 1,
         "confidentlyWrongRate": 5,
         "byVia": {
-          "fallback": 11,
-          "rule": 9
+          "fallback": 10,
+          "rule": 9,
+          "search": 1
         },
         "byCategory": [
           {

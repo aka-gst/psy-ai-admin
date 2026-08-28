@@ -102,3 +102,33 @@ test("страницы арендатора могут быть путями е�
   assert.equal(assistant.sources.help.url, "/consultation");
   assert.equal(assistant.ask("Посоветуйте антидепрессант").sourceKeys[0], "help");
 });
+
+const withFaq = (confirmed) => withCatalog((catalog) => {
+  catalog.sources.help.about = "консультации специалисты приём запись";
+  catalog.sources.help.response = "clinical";
+  catalog.faq = [{ id: "teens", source: "help", confirmed, text: "Центр работает с подростками.", about: "подросток подростки возраст лет" }];
+  catalog.pipeline.push({ search: true, minScore: 0.5 });
+});
+
+test("неподтверждённая запись FAQ помогает найти страницу, но не произносится", () => {
+  const assistant = createAssistant(withFaq(false));
+  const answer = assistant.ask("Принимаете подростков?");
+  assert.equal(answer.sourceKeys[0], "help");
+  assert.equal(answer.via, "search");
+  assert.notEqual(answer.text, "Центр работает с подростками.");
+});
+
+test("подтверждённая запись FAQ становится ответом", () => {
+  const assistant = createAssistant(withFaq(true));
+  const answer = assistant.ask("Принимаете подростков?");
+  assert.equal(answer.text, "Центр работает с подростками.");
+  assert.equal(answer.via, "faq");
+  assert.deepEqual(answer.sourceKeys, ["help"]);
+});
+
+test("запись FAQ на несуществующий источник не запускается", () => {
+  assert.throws(() => prepareCatalog(withCatalog((catalog) => {
+    catalog.faq = [{ id: "нет", source: "нет-такого", text: "…" }];
+    catalog.pipeline.push({ search: true });
+  })), /несуществующий источник/);
+});

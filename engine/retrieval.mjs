@@ -16,7 +16,7 @@ export function createRetriever(documents, options = {}) {
     const terms = tokenize(document.text);
     const frequency = new Map();
     for (const term of terms) frequency.set(term, (frequency.get(term) ?? 0) + 1);
-    return { sourceKey: document.sourceKey, frequency, length: terms.length };
+    return { document, frequency, length: terms.length };
   });
 
   const documentCount = corpus.length;
@@ -42,12 +42,12 @@ export function createRetriever(documents, options = {}) {
           if (!frequency) continue;
           score += idf(term) * ((frequency * (K1 + 1)) / (frequency + K1 * (1 - B + (B * item.length) / averageLength)));
         }
-        return { sourceKey: item.sourceKey, score };
+        return { document: item.document, score };
       })
       .sort((left, right) => right.score - left.score);
 
     const best = ranked[0];
     if (!best || best.score < minScore) return null;
-    return { sourceKey: best.sourceKey, score: best.score, runnerUp: ranked[1]?.score ?? 0 };
+    return { document: best.document, score: best.score, runnerUp: ranked[1]?.score ?? 0 };
   };
 }

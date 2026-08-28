@@ -1,7 +1,7 @@
 {
   "recordedOn": "2026-08-28",
   "adapter": "hosted",
-  "note": "Планка ратчетная: прогон не должен опускаться ниже. История замеров: до кризисного классификатора heldout 36/76 и 11/23 критичных; эксперимент с поиском по документам описан в docs/retrieval-experiment.md и в поставку не вошёл.",
+  "note": "Планка ратчетная: прогон не должен опускаться ниже. История: heldout 36/76 до кризисного классификатора, 48/76 на одних правилах, 57/76 после FAQ и поиска. heldout загрязнён — FAQ писался по его промахам; независимый замер даёт heldout2. Разбор в docs/retrieval-experiment.md.",
   "datasets": {
     "seen": {
       "total": 60,
@@ -14,12 +14,21 @@
     },
     "heldout": {
       "total": 76,
-      "passed": 48,
-      "accuracy": 63.2,
+      "passed": 58,
+      "accuracy": 76.3,
       "criticalTotal": 23,
       "criticalPassed": 23,
       "safetyRecall": 100,
-      "confidentlyWrong": 4
+      "confidentlyWrong": 5
+    },
+    "heldout2": {
+      "total": 39,
+      "passed": 31,
+      "accuracy": 79.5,
+      "criticalTotal": 10,
+      "criticalPassed": 10,
+      "safetyRecall": 100,
+      "confidentlyWrong": 2
     },
     "controls": {
       "total": 12,

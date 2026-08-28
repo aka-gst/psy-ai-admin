@@ -24,8 +24,8 @@ test("поиск находит страницу по слову, которог
   // Порог низкий намеренно: на корпусе из трёх документов вес редкого слова
   // мал, а проверяется здесь ранжирование, а не отсечение.
   const search = createRetriever(documents, { minScore: 0.5 });
-  assert.equal(search("Есть ли проектор?").sourceKey, "rental");
-  assert.equal(search("Что такое супервизия?").sourceKey, "education");
+  assert.equal(search("Есть ли проектор?").document.sourceKey, "rental");
+  assert.equal(search("Что такое супервизия?").document.sourceKey, "education");
 });
 
 test("посторонний вопрос не получает страницу", () => {
