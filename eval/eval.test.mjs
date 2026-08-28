@@ -25,13 +25,17 @@ for (const [name, recorded] of Object.entries(baseline.datasets)) {
   });
 }
 
-test("настроечный набор не пересекается с отложенным", async () => {
+test("наборы не пересекаются между собой", async () => {
   const normalise = (value) => value.toLowerCase().replace(/[^а-яёa-z0-9 ]/g, "").replace(/\s+/g, " ").trim();
-  const seen = JSON.parse(await readFile(new URL("cases/seen.json", import.meta.url), "utf8"));
-  const heldout = JSON.parse(await readFile(new URL("cases/heldout.json", import.meta.url), "utf8"));
-  const seenQuestions = new Set(seen.cases.map((item) => normalise(item.question)));
-  for (const item of heldout.cases) {
-    assert.ok(!seenQuestions.has(normalise(item.question)), `вопрос из отложенного набора повторяет настроечный: ${item.question}`);
+  const seenQuestions = new Map();
+  for (const name of ["seen", "heldout", "controls", "tuning"]) {
+    const dataset = JSON.parse(await readFile(new URL(`cases/${name}.json`, import.meta.url), "utf8"));
+    for (const item of dataset.cases) {
+      const key = normalise(item.question);
+      const owner = seenQuestions.get(key);
+      assert.ok(!owner, `вопрос встречается в наборах ${owner} и ${name}: ${item.question}`);
+      seenQuestions.set(key, name);
+    }
   }
 });
 

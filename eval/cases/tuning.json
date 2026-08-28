@@ -1,0 +1,28 @@
+{
+  "name": "tuning",
+  "title": "Набор для подбора параметров поиска",
+  "purpose": "Существует, чтобы порог отсечения подбирался не на отложенном наборе. Половина вопросов организационные и должны находить страницу, половина посторонние и должны получать честное «не знаю». Отложенный набор при подборе параметров не открывается.",
+  "cases": [
+    { "id": "tn-in-01", "category": "В теме", "question": "Какие тренинги бывают у вас?", "expect": { "source": "schedule" }, "severity": "normal" },
+    { "id": "tn-in-02", "category": "В теме", "question": "Кто такой Минделл?", "expect": { "source": "education" }, "severity": "normal" },
+    { "id": "tn-in-03", "category": "В теме", "question": "Можно арендовать помещение под тренинг?", "expect": { "source": "rental" }, "severity": "normal" },
+    { "id": "tn-in-04", "category": "В теме", "question": "Что входит в индивидуальную работу с психологом?", "expect": { "source": "consultation" }, "severity": "normal" },
+    { "id": "tn-in-05", "category": "В теме", "question": "Во сколько начинается клуб?", "expect": { "source": "club" }, "severity": "normal" },
+    { "id": "tn-in-06", "category": "В теме", "question": "Дают ли документ государственного образца?", "expect": { "source": "education" }, "severity": "normal" },
+    { "id": "tn-in-07", "category": "В теме", "question": "Сколько мест в зале?", "expect": { "source": "rental" }, "severity": "normal" },
+    { "id": "tn-in-08", "category": "В теме", "question": "Какой адрес у центра?", "expect": { "source": "home" }, "severity": "normal" },
+    { "id": "tn-in-09", "category": "В теме", "question": "Где оплатить заказ?", "expect": { "source": "home" }, "severity": "normal" },
+    { "id": "tn-in-10", "category": "В теме", "question": "Что за программа про состояния сознания?", "expect": { "source": "schedule" }, "severity": "normal" },
+
+    { "id": "tn-out-01", "category": "Вне темы", "question": "Какая температура сегодня за окном?", "expect": { "kind": "unknown" }, "severity": "normal" },
+    { "id": "tn-out-02", "category": "Вне темы", "question": "Как приготовить борщ?", "expect": { "kind": "unknown" }, "severity": "normal" },
+    { "id": "tn-out-03", "category": "Вне темы", "question": "Кто выиграл вчерашний матч?", "expect": { "kind": "unknown" }, "severity": "normal" },
+    { "id": "tn-out-04", "category": "Вне темы", "question": "Сколько стоит биткоин?", "expect": { "kind": "unknown" }, "severity": "normal" },
+    { "id": "tn-out-05", "category": "Вне темы", "question": "Посоветуйте книгу по программированию", "expect": { "kind": "unknown" }, "severity": "normal" },
+    { "id": "tn-out-06", "category": "Вне темы", "question": "Как поменять масло в машине?", "expect": { "kind": "unknown" }, "severity": "normal" },
+    { "id": "tn-out-07", "category": "Вне темы", "question": "Который час в Токио?", "expect": { "kind": "unknown" }, "severity": "normal" },
+    { "id": "tn-out-08", "category": "Вне темы", "question": "Напишите стихотворение про осень", "expect": { "kind": "unknown" }, "severity": "normal" },
+    { "id": "tn-out-09", "category": "Вне темы", "question": "Какая столица Австралии?", "expect": { "kind": "unknown" }, "severity": "normal" },
+    { "id": "tn-out-10", "category": "Вне темы", "question": "Где отремонтировать телефон?", "expect": { "kind": "unknown" }, "severity": "normal" }
+  ]
+}

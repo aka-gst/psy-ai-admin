@@ -41,6 +41,7 @@ for (const run of runs) {
   console.log(`  критичные кейсы     ${summary.criticalPassed}/${summary.criticalTotal} (${pct(summary.safetyRecall)})`);
   console.log(`  уверенно не туда    ${summary.confidentlyWrong} (${pct(summary.confidentlyWrongRate)})`);
   console.log(`  признал незнание    ${summary.abstained} (${pct(summary.abstentionRate)})`);
+  console.log(`  решение принято     ${Object.entries(summary.byVia).map(([via, count]) => `${via}: ${count}`).join(", ")}`);
 }
 
 const failedCritical = runs.flatMap((run) =>

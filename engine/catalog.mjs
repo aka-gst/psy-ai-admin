@@ -22,6 +22,7 @@ export function prepareCatalog(raw) {
   };
 
   const { center, sources, responses, pipeline, fallback, empty } = raw ?? {};
+  const extraDocuments = raw?.documents ?? [];
   if (!center || typeof center !== "object") fail("отсутствует раздел center");
   if (!sources || typeof sources !== "object") fail("отсутствует раздел sources");
   if (!responses || typeof responses !== "object") fail("отсутствует раздел responses");
@@ -30,6 +31,8 @@ export function prepareCatalog(raw) {
   for (const [key, source] of Object.entries(sources)) {
     if (!isUsableUrl(source?.url)) fail(`источник «${key}» указывает не на https-адрес и не на путь своего сайта`);
     if (!source.label) fail(`у источника «${key}» нет подписи`);
+    if (source.about && !source.response) fail(`у источника «${key}» есть описание для поиска, но не указан ответ`);
+    if (source.response && !(source.response in responses)) fail(`источник «${key}» ссылается на несуществующий ответ «${source.response}»`);
   }
   for (const [key, text] of Object.entries(responses)) {
     if (typeof text !== "string" || !text.trim()) fail(`ответ «${key}» пуст`);
@@ -44,19 +47,22 @@ export function prepareCatalog(raw) {
   }
 
   const steps = pipeline.map((step, index) => {
-    const responseKey = step.response ?? step.safety;
-    if (!responseKey) fail(`шаг ${index} не указывает ответ`);
-    if (!(responseKey in responses)) fail(`шаг ${index} ссылается на несуществующий ответ «${responseKey}»`);
+    const responseKey = step.search ? null : (step.response ?? step.safety);
+    if (!step.search) {
+      if (!responseKey) fail(`шаг ${index} не указывает ответ`);
+      if (!(responseKey in responses)) fail(`шаг ${index} ссылается на несуществующий ответ «${responseKey}»`);
+    }
     const sourceKeys = step.safety === "crisis" ? [] : (step.sources ?? []);
     for (const key of sourceKeys) {
       if (!(key in sources)) fail(`шаг ${index} ссылается на несуществующий источник «${key}»`);
     }
     if (step.match && step.safety) fail(`шаг ${index}: шаг безопасности не настраивается регулярным выражением`);
-    if (!step.safety && !step.match && !step.followUp) fail(`шаг ${index} не содержит ни safety, ни match, ни followUp`);
+    if (!step.safety && !step.match && !step.followUp && !step.search) fail(`шаг ${index} не содержит ни safety, ни match, ни followUp, ни search`);
     return {
       safety: step.safety ?? null,
       match: step.match ? new RegExp(step.match, "i") : null,
       followUp: step.followUp ? new RegExp(step.followUp, "i") : null,
+      search: step.search ? { minScore: step.minScore ?? 3 } : null,
       responseKey,
       sourceKeys,
       kind: step.kind ?? null,
@@ -72,7 +78,23 @@ export function prepareCatalog(raw) {
     return { responseKey: value.response, sourceKeys: value.sources ?? [], kind: value.kind ?? defaultKind };
   };
 
+  // Описание about — минимум, который владелец сайта пишет сам. Более полный
+  // корпус (выгрузка открытых страниц) подставляется через documents, не
+  // попадает в репозиторий и не обязателен для работы.
+  const documents = Object.entries(sources)
+    .filter(([, source]) => source.about)
+    .map(([sourceKey, source]) => ({ sourceKey, text: [source.label, source.description, source.about].filter(Boolean).join(" ") }));
+  for (const document of extraDocuments) {
+    if (!(document.source in sources)) fail(`documents ссылается на несуществующий источник «${document.source}»`);
+    if (!sources[document.source].response) fail(`у источника «${document.source}» есть документ, но не указан ответ`);
+    const existing = documents.find((item) => item.sourceKey === document.source);
+    if (existing) existing.text += ` ${document.text}`;
+    else documents.push({ sourceKey: document.source, text: document.text });
+  }
+  if (steps.some((step) => step.search) && !documents.length) fail("шаг search есть, а описаний about у источников нет");
+
   return Object.freeze({
+    documents,
     center: Object.freeze({ ...center }),
     sources: Object.freeze({ ...sources }),
     responses: Object.freeze(Object.fromEntries(Object.entries(responses).map(([key, text]) => [key, interpolate(text, center)]))),

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Создаёт локальный поисковый индекс из разрешённого публичного снимка.
 
-Заготовка для перехода с регулярных выражений на поиск по документам:
-индекс не коммитится и собирается из локального снимка публичных страниц.
+Готовит раздел documents для каталога арендатора: движок ищет по нему, когда
+коротких описаний about не хватает. Результат не коммитится — это производный
+артефакт из локального снимка открытых страниц.
 """
 
 from html.parser import HTMLParser
@@ -11,15 +12,16 @@ import json
 
 ROOT = Path(__file__).resolve().parents[1]
 SNAPSHOT = ROOT / "reference" / "orion-center-public-snapshot"
-OUTPUT = ROOT / "data" / "private" / "public-content-index.js"
+OUTPUT = ROOT / "data" / "private" / "documents.json"
+# Ключи совпадают с sources в каталоге арендатора.
 PAGES = {
-    "index.html": ("https://orion-center.ru/", "Главная"),
-    "schedule.html": ("https://orion-center.ru/schedule", "Расписание"),
-    "psycluborion.html": ("https://orion-center.ru/psycluborion", "Психологический клуб"),
-    "pweducation.html": ("https://orion-center.ru/pweducation", "ProcessWork и обучение"),
-    "consultation.html": ("https://orion-center.ru/consultation", "Консультации"),
-    "services.html": ("https://orion-center.ru/services", "Аренда залов"),
-    "programs.html": ("https://orion-center.ru/programs", "Программы"),
+    "index.html": "home",
+    "schedule.html": "schedule",
+    "psycluborion.html": "club",
+    "pweducation.html": "education",
+    "consultation.html": "consultation",
+    "services.html": "rental",
+    "programs.html": "programs",
 }
 
 class TextExtractor(HTMLParser):
@@ -35,10 +37,10 @@ class TextExtractor(HTMLParser):
 
 OUTPUT.parent.mkdir(parents=True, exist_ok=True)
 documents = []
-for filename, (url, title) in PAGES.items():
+for filename, source in PAGES.items():
     parser = TextExtractor()
     parser.feed((SNAPSHOT / filename).read_text(encoding="utf-8"))
-    text = " ".join(parser.parts)
-    documents.append({"url": url, "title": title, "summary": text[:280], "text": text[:30000]})
-OUTPUT.write_text("// Generated from the local public snapshot; do not commit.\n" + f"globalThis.publicContentIndex = {json.dumps(documents, ensure_ascii=False)};\n", encoding="utf-8")
+    documents.append({"source": source, "text": " ".join(parser.parts)[:20000]})
+OUTPUT.write_text(json.dumps(documents, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 print(f"Wrote {len(documents)} documents to {OUTPUT.relative_to(ROOT)}")
+print("Вставьте содержимое в раздел documents каталога арендатора.")

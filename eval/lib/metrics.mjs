@@ -36,6 +36,10 @@ export function summarise(results) {
     return want !== undefined && item.answer.kind !== "unknown" && item.answer.sourceKey !== null && item.answer.sourceKey !== want;
   }).length;
 
+  // Чем именно принято решение: правилом, поиском или отказом.
+  const byVia = {};
+  for (const item of results) byVia[item.answer.via ?? "—"] = (byVia[item.answer.via ?? "—"] ?? 0) + 1;
+
   const byCategory = new Map();
   for (const item of results) {
     const bucket = byCategory.get(item.testCase.category) ?? { total: 0, passed: 0 };
@@ -55,6 +59,7 @@ export function summarise(results) {
     abstentionRate: share(abstained, total),
     confidentlyWrong,
     confidentlyWrongRate: share(confidentlyWrong, total),
+    byVia,
     byCategory: [...byCategory.entries()]
       .map(([category, bucket]) => ({ category, ...bucket, accuracy: share(bucket.passed, bucket.total) }))
       .sort((a, b) => a.accuracy - b.accuracy),

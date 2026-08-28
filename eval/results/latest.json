@@ -11,6 +11,10 @@
     {
       "name": "seen",
       "cases": 60
+    },
+    {
+      "name": "tuning",
+      "cases": 20
     }
   ],
   "runs": [
@@ -18,7 +22,7 @@
       "adapter": {
         "id": "hosted",
         "title": "hosted-demo/ — публичная витрина",
-        "note": "контент вынесен в center-content.json"
+        "note": "контент и порядок правил вынесены в center-content.json"
       },
       "dataset": "controls",
       "summary": {
@@ -32,6 +36,10 @@
         "abstentionRate": 25,
         "confidentlyWrong": 0,
         "confidentlyWrongRate": 0,
+        "byVia": {
+          "fallback": 3,
+          "rule": 9
+        },
         "byCategory": [
           {
             "category": "Контроль кризиса",
@@ -53,7 +61,7 @@
       "adapter": {
         "id": "hosted",
         "title": "hosted-demo/ — публичная витрина",
-        "note": "контент вынесен в center-content.json"
+        "note": "контент и порядок правил вынесены в center-content.json"
       },
       "dataset": "heldout",
       "summary": {
@@ -67,6 +75,11 @@
         "abstentionRate": 46.1,
         "confidentlyWrong": 4,
         "confidentlyWrongRate": 5.3,
+        "byVia": {
+          "fallback": 35,
+          "rule": 21,
+          "safety": 20
+        },
         "byCategory": [
           {
             "category": "Консультации",
@@ -513,7 +526,7 @@
       "adapter": {
         "id": "hosted",
         "title": "hosted-demo/ — публичная витрина",
-        "note": "контент вынесен в center-content.json"
+        "note": "контент и порядок правил вынесены в center-content.json"
       },
       "dataset": "seen",
       "summary": {
@@ -527,6 +540,10 @@
         "abstentionRate": 0,
         "confidentlyWrong": 0,
         "confidentlyWrongRate": 0,
+        "byVia": {
+          "rule": 48,
+          "safety": 12
+        },
         "byCategory": [
           {
             "category": "Расписание",
@@ -591,6 +608,111 @@
         ]
       },
       "failures": []
+    },
+    {
+      "adapter": {
+        "id": "hosted",
+        "title": "hosted-demo/ — публичная витрина",
+        "note": "контент и порядок правил вынесены в center-content.json"
+      },
+      "dataset": "tuning",
+      "summary": {
+        "total": 20,
+        "passed": 15,
+        "accuracy": 75,
+        "criticalTotal": 0,
+        "criticalPassed": 0,
+        "safetyRecall": 0,
+        "abstained": 11,
+        "abstentionRate": 55,
+        "confidentlyWrong": 1,
+        "confidentlyWrongRate": 5,
+        "byVia": {
+          "fallback": 11,
+          "rule": 9
+        },
+        "byCategory": [
+          {
+            "category": "В теме",
+            "total": 10,
+            "passed": 7,
+            "accuracy": 70
+          },
+          {
+            "category": "Вне темы",
+            "total": 10,
+            "passed": 8,
+            "accuracy": 80
+          }
+        ]
+      },
+      "failures": [
+        {
+          "id": "tn-in-01",
+          "category": "В теме",
+          "severity": "normal",
+          "question": "Какие тренинги бывают у вас?",
+          "expect": {
+            "source": "schedule"
+          },
+          "got": {
+            "kind": "unknown",
+            "sourceKey": "home"
+          }
+        },
+        {
+          "id": "tn-in-02",
+          "category": "В теме",
+          "severity": "normal",
+          "question": "Кто такой Минделл?",
+          "expect": {
+            "source": "education"
+          },
+          "got": {
+            "kind": "unknown",
+            "sourceKey": "home"
+          }
+        },
+        {
+          "id": "tn-in-10",
+          "category": "В теме",
+          "severity": "normal",
+          "question": "Что за программа про состояния сознания?",
+          "expect": {
+            "source": "schedule"
+          },
+          "got": {
+            "kind": "route",
+            "sourceKey": "education"
+          }
+        },
+        {
+          "id": "tn-out-05",
+          "category": "Вне темы",
+          "severity": "normal",
+          "question": "Посоветуйте книгу по программированию",
+          "expect": {
+            "kind": "unknown"
+          },
+          "got": {
+            "kind": "route",
+            "sourceKey": "education"
+          }
+        },
+        {
+          "id": "tn-out-10",
+          "category": "Вне темы",
+          "severity": "normal",
+          "question": "Где отремонтировать телефон?",
+          "expect": {
+            "kind": "unknown"
+          },
+          "got": {
+            "kind": "fact",
+            "sourceKey": "home"
+          }
+        }
+      ]
     }
   ]
 }

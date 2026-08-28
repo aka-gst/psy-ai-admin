@@ -7,6 +7,7 @@ const normalise = (raw) => ({
   kind: raw?.kind ?? "route",
   sourceKey: raw?.sourceKeys?.[0] ?? null,
   text: raw?.text ?? "",
+  via: raw?.via ?? null,
 });
 
 async function loadHosted() {
@@ -14,7 +15,7 @@ async function loadHosted() {
   return {
     id: "hosted",
     title: "hosted-demo/ — публичная витрина",
-    note: "контент вынесен в center-content.json",
+    note: "контент и порядок правил вынесены в center-content.json",
     ask: (question, lastSourceKey) => normalise(routeQuestion(question, lastSourceKey)),
   };
 }
