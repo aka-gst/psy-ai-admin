@@ -12,6 +12,10 @@ const B = 0.75;
 
 export function createRetriever(documents, options = {}) {
   const minScore = options.minScore ?? 3;
+  // Ответ обязан объяснять заметную часть вопроса, а не одно случайное слово.
+  // Без этого «друг сказал, что не хочет больше жить» уходило на страницу
+  // обучения: там встречается слово «жить».
+  const minCoverage = options.minCoverage ?? 0.4;
   const corpus = documents.map((document) => {
     const terms = tokenize(document.text);
     const frequency = new Map();
@@ -34,20 +38,24 @@ export function createRetriever(documents, options = {}) {
   return function search(question) {
     const terms = tokenize(question);
     if (!terms.length || !documentCount) return null;
+    const unique = [...new Set(terms)];
     const ranked = corpus
       .map((item) => {
         let score = 0;
-        for (const term of terms) {
+        let matched = 0;
+        for (const term of unique) {
           const frequency = item.frequency.get(term);
           if (!frequency) continue;
+          matched += 1;
           score += idf(term) * ((frequency * (K1 + 1)) / (frequency + K1 * (1 - B + (B * item.length) / averageLength)));
         }
-        return { document: item.document, score };
+        return { document: item.document, score, matched };
       })
       .sort((left, right) => right.score - left.score);
 
     const best = ranked[0];
     if (!best || best.score < minScore) return null;
+    if (best.matched / unique.length < minCoverage) return null;
     return { document: best.document, score: best.score, runnerUp: ranked[1]?.score ?? 0 };
   };
 }

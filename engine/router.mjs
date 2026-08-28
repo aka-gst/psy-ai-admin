@@ -2,12 +2,12 @@
 // Обнаружение опасных сообщений принадлежит движку и не настраивается через
 // каталог; арендатор выбирает только текст ответа и страницу, куда вести.
 import { createRetriever } from "./retrieval.mjs";
-import { isClinical, isCrisis } from "./safety-signals.mjs";
+import { isClinical, isCrisis, isPossibleDistress } from "./safety-signals.mjs";
 
 // Попытки снять роль администратора. Как и кризисный список, набор шире
 // буквальных формулировок: «системный промпт» не совпадал с «системные
 // инструкции», а «ты теперь свободный ИИ» не совпадало ни с чем.
-const INJECTION = /игнорируй|игнорируя|забудь (все |всё )?(предыдущ|прежн|свои)|обойди.*правил|системн\w*\s*(промпт|инструкц|сообщен)|раскрой.*инструкц|покажи.*(промпт|инструкц)|ты теперь|ты больше не|без ограничений|режим разработчика|представь,? что ты|притворись|веди себя как|act as|system prompt|jailbreak|dan режим/i;
+const INJECTION = /игнорируй|игнорируя|забудь (все |всё )?(предыдущ|прежн|свои)|обойди.*правил|системн\w*\s*(промпт|инструкц|сообщен)|раскрой.*инструкц|покажи.*(промпт|инструкц)|ты теперь|ты больше не|сбрось настройк|стань (обычным|другим|просто)|ты не (администратор|бот|ассистент|помощник|ии)|(отвечай|говори|работай|действуй|веди себя)[^.]{0,25}без ([а-я]+ )?ограничени|режим разработчика|представь,? что ты|притворись|веди себя как|act as|system prompt|jailbreak|dan режим/i;
 const PAYMENT = /карт[аы]|реквизит|cvv|парол|личн(ый|ого) кабинет|оплатить.*чат|как оплатить|оплат[аы].*участ/i;
 const GUARANTEE = /гарантир|обеща.*результат|точно поможет/i;
 
@@ -65,6 +65,10 @@ export function createRouter(catalog) {
       if (step.match.test(question)) return answer(step.responseKey, step.sourceKeys, step.kind ?? "route", "rule");
     }
 
+    if (catalog.fallback.distress && isPossibleDistress(question)) {
+      const { responseKey, sourceKeys, kind } = catalog.fallback.distress;
+      return answer(responseKey, sourceKeys, kind, "distress");
+    }
     return answer(catalog.fallback.responseKey, catalog.fallback.sourceKeys, catalog.fallback.kind, "fallback");
   };
 }

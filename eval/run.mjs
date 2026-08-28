@@ -28,20 +28,36 @@ const runs = [];
 for (const adapter of adapters) {
   for (const dataset of datasets) {
     const results = dataset.cases.map((testCase) => ({ testCase, ...checkCase(testCase, adapter.ask(testCase.question, testCase.context)) }));
-    runs.push({ adapter: { id: adapter.id, title: adapter.title, note: adapter.note }, dataset: { name: dataset.name, title: dataset.title, purpose: dataset.purpose }, summary: summarise(results), results });
+    runs.push({ adapter: { id: adapter.id, title: adapter.title, note: adapter.note }, dataset: { name: dataset.name, role: dataset.role ?? "regression", burned: dataset.burned ?? null, title: dataset.title, purpose: dataset.purpose }, summary: summarise(results), results });
   }
 }
 
 const pct = (value) => `${value.toFixed(1)}%`.replace(".0%", "%");
 
+// Набор, чьи промахи уже привели к правке, перестаёт быть независимым: качество
+// на нём завышено. Заголовок берётся только из действующего отложенного набора.
+const roleLabel = (dataset) => dataset.burned
+  ? `регрессия · независимость утрачена ${dataset.burned.on}`
+  : { heldout: "НЕЗАВИСИМЫЙ ЗАМЕР", regression: "регрессия", controls: "контроль ложных срабатываний", tuning: "подбор параметров" }[dataset.role] ?? dataset.role;
+
 for (const run of runs) {
   const { summary } = run;
-  console.log(`\n${run.adapter.title} · набор ${run.dataset.name}`);
+  console.log(`\n${run.adapter.title} · набор ${run.dataset.name} — ${roleLabel(run.dataset)}`);
   console.log(`  маршрут верный      ${summary.passed}/${summary.total} (${pct(summary.accuracy)})`);
   console.log(`  критичные кейсы     ${summary.criticalTotal ? `${summary.criticalPassed}/${summary.criticalTotal} (${pct(summary.safetyRecall)})` : "нет в наборе"}`);
   console.log(`  уверенно не туда    ${summary.confidentlyWrong} (${pct(summary.confidentlyWrongRate)})`);
   console.log(`  признал незнание    ${summary.abstained} (${pct(summary.abstentionRate)})`);
   console.log(`  решение принято     ${Object.entries(summary.byVia).map(([via, count]) => `${via}: ${count}`).join(", ")}`);
+}
+
+const headline = runs.filter((run) => run.dataset.role === "heldout" && !run.dataset.burned);
+if (headline.length) {
+  console.log("\nНезависимый замер качества:");
+  for (const run of headline) {
+    console.log(`  ${run.dataset.name}: маршрут ${run.summary.passed}/${run.summary.total} (${pct(run.summary.accuracy)}), критичные ${run.summary.criticalPassed}/${run.summary.criticalTotal}`);
+  }
+} else {
+  console.log("\nНезависимого набора нет: все отложенные наборы уже использованы для правок. Нужен новый.");
 }
 
 const failedCritical = runs.flatMap((run) =>

@@ -1,13 +1,17 @@
 // Планка качества: прогон наборов не должен опускаться ниже записанного замера.
 // Планка ратчетная — после улучшения роутера обновите eval/baseline.json новым прогоном.
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import test from "node:test";
 import { createAssistant, signalGroups, isClinical, isCrisis } from "../engine/index.mjs";
 import { loadAdapters } from "./lib/adapters.mjs";
 import { checkCase, summarise } from "./lib/metrics.mjs";
 
 const baseline = JSON.parse(await readFile(new URL("baseline.json", import.meta.url), "utf8"));
+
+// Наборы перечисляются по каталогу: добавленный файл сразу попадает во все
+// проверки, а не только в те, где его вписали руками.
+const datasetNames = async () => (await readdir(new URL("cases/", import.meta.url))).filter((file) => file.endsWith(".json")).map((file) => file.replace(/\.json$/, "")).sort();
 const [adapter] = await loadAdapters([baseline.adapter]);
 
 const runDataset = async (name) => {
@@ -28,7 +32,7 @@ for (const [name, recorded] of Object.entries(baseline.datasets)) {
 test("наборы не пересекаются между собой", async () => {
   const normalise = (value) => value.toLowerCase().replace(/[^а-яёa-z0-9 ]/g, "").replace(/\s+/g, " ").trim();
   const seenQuestions = new Map();
-  for (const name of ["seen", "heldout", "controls", "tuning"]) {
+  for (const name of await datasetNames()) {
     const dataset = JSON.parse(await readFile(new URL(`cases/${name}.json`, import.meta.url), "utf8"));
     for (const item of dataset.cases) {
       const key = normalise(item.question);
@@ -41,7 +45,7 @@ test("наборы не пересекаются между собой", async (
 
 test("новые правила безопасности не сузили прежние", async () => {
   const normalise = (value) => value.toLowerCase().replace(/ё/g, "е").replace(/[^а-яa-z0-9]+/g, " ").trim();
-  const names = ["seen", "heldout", "controls"];
+  const names = await datasetNames();
   const questions = [];
   for (const name of names) {
     const dataset = JSON.parse(await readFile(new URL(`cases/${name}.json`, import.meta.url), "utf8"));

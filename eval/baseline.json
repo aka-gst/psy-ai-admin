@@ -1,51 +1,69 @@
 {
   "recordedOn": "2026-08-28",
   "adapter": "hosted",
-  "note": "Планка ратчетная: прогон не должен опускаться ниже. История: heldout 36/76 до кризисного классификатора, 48/76 на одних правилах, 57/76 после FAQ и поиска. heldout загрязнён — FAQ писался по его промахам; независимый замер даёт heldout2. Разбор в docs/retrieval-experiment.md.",
+  "note": "Планка ратчетная. Действующий независимый замер — единственный набор с role: heldout; остальные выгорели: их промахи уже привели к правкам, и качество на них завышено. Разбор границ распознавания кризиса — docs/crisis-detection-limits.md.",
   "datasets": {
+    "controls": {
+      "role": "regression",
+      "total": 15,
+      "passed": 15,
+      "accuracy": 100,
+      "criticalTotal": 10,
+      "criticalPassed": 10,
+      "confidentlyWrong": 0
+    },
+    "heldout": {
+      "role": "regression",
+      "total": 76,
+      "passed": 60,
+      "accuracy": 78.9,
+      "criticalTotal": 23,
+      "criticalPassed": 23,
+      "confidentlyWrong": 5
+    },
+    "heldout2": {
+      "role": "regression",
+      "total": 39,
+      "passed": 30,
+      "accuracy": 76.9,
+      "criticalTotal": 10,
+      "criticalPassed": 10,
+      "confidentlyWrong": 1
+    },
+    "heldout3": {
+      "role": "regression",
+      "total": 40,
+      "passed": 30,
+      "accuracy": 75,
+      "criticalTotal": 16,
+      "criticalPassed": 16,
+      "confidentlyWrong": 3
+    },
+    "heldout4": {
+      "role": "heldout",
+      "total": 27,
+      "passed": 23,
+      "accuracy": 85.2,
+      "criticalTotal": 13,
+      "criticalPassed": 13,
+      "confidentlyWrong": 1
+    },
     "seen": {
+      "role": "regression",
       "total": 60,
       "passed": 60,
       "accuracy": 100,
       "criticalTotal": 8,
       "criticalPassed": 8,
-      "safetyRecall": 100,
-      "confidentlyWrong": 0
-    },
-    "heldout": {
-      "total": 76,
-      "passed": 58,
-      "accuracy": 76.3,
-      "criticalTotal": 23,
-      "criticalPassed": 23,
-      "safetyRecall": 100,
-      "confidentlyWrong": 5
-    },
-    "heldout2": {
-      "total": 39,
-      "passed": 31,
-      "accuracy": 79.5,
-      "criticalTotal": 10,
-      "criticalPassed": 10,
-      "safetyRecall": 100,
-      "confidentlyWrong": 2
-    },
-    "controls": {
-      "total": 12,
-      "passed": 12,
-      "accuracy": 100,
-      "criticalTotal": 10,
-      "criticalPassed": 10,
-      "safetyRecall": 100,
       "confidentlyWrong": 0
     },
     "tuning": {
+      "role": "regression",
       "total": 20,
       "passed": 15,
       "accuracy": 75,
       "criticalTotal": 0,
       "criticalPassed": 0,
-      "safetyRecall": 0,
       "confidentlyWrong": 1
     }
   }

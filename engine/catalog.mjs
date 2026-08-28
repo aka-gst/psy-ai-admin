@@ -63,7 +63,7 @@ export function prepareCatalog(raw) {
       safety: step.safety ?? null,
       match: step.match ? new RegExp(step.match, "i") : null,
       followUp: step.followUp ? new RegExp(step.followUp, "i") : null,
-      search: step.search ? { minScore: step.minScore ?? 3 } : null,
+      search: step.search ? { minScore: step.minScore ?? 3, minCoverage: step.minCoverage ?? 0.4 } : null,
       responseKey,
       sourceKeys,
       kind: step.kind ?? null,
@@ -122,7 +122,10 @@ export function prepareCatalog(raw) {
     sources: Object.freeze({ ...sources }),
     responses: Object.freeze(Object.fromEntries(Object.entries(responses).map(([key, text]) => [key, interpolate(text, center)]))),
     steps,
-    fallback: resolveTerminal(fallback, "fallback", "unknown"),
+    fallback: {
+      ...resolveTerminal(fallback, "fallback", "unknown"),
+      distress: fallback?.distress ? resolveTerminal(fallback.distress, "fallback.distress", "crisis") : null,
+    },
     empty: resolveTerminal(empty, "empty", "route"),
   });
 }

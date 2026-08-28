@@ -146,3 +146,15 @@ test("подтверждение без следа не принимается",
   assert.throws(() => prepareCatalog(withoutTrace((entry) => { entry.confirmedOn = "28.08.2026"; })), /без даты confirmedOn/);
   assert.throws(() => prepareCatalog(withoutTrace((entry) => { delete entry.confirmedBy; })), /без указания, кто подтвердил/);
 });
+
+test("нераспознанное сообщение о себе и о плохом получает экстренные контакты", () => {
+  const assistant = createAssistant(withCatalog((catalog) => {
+    catalog.responses.distress = "Если речь о вашем состоянии — звоните {{emergencyNumber}}.";
+    catalog.fallback.distress = { response: "distress", sources: [], kind: "crisis" };
+  }));
+  const answer = assistant.ask("Мне очень тяжело и я не вижу, что делать дальше");
+  assert.equal(answer.via, "distress");
+  assert.match(answer.text, /112/);
+  // Обычный незнакомый вопрос страховку не поднимает.
+  assert.equal(assistant.ask("Какая столица Австралии?").via, "fallback");
+});
