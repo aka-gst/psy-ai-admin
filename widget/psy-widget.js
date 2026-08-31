@@ -9,6 +9,7 @@
 // 0 из 6, — поэтому для показа и тем более для установки нужен сервер.
 import { createAssistant } from "../engine/index.mjs";
 import catalog from "../hosted-demo/app/center-content.json" with { type: "json" };
+import { preparedQuestions } from "../hosted-demo/app/content.js";
 
 const script = document.currentScript ?? document.querySelector("script[data-psy-widget]");
 const endpoint = script?.dataset?.endpoint ?? "";
@@ -77,6 +78,15 @@ root.innerHTML = `
   .quick { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 14px 10px; background: #f7f5fb; }
   .quick button { padding: 7px 11px; border: 1px solid #cdbfe8; border-radius: 999px; background: #fff; color: #45327a; font-size: 12.5px; cursor: pointer; }
   .quick button:hover { border-color: #7d5fc6; }
+  .all { background: #f7f5fb; border-top: 1px solid #e6e1ef; }
+  .all summary { padding: 10px 14px; font-size: 12.5px; font-weight: 600; color: #45327a; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+  .all summary::-webkit-details-marker { display: none; }
+  .all summary::after { content: "▾"; opacity: .55; }
+  .all[open] summary::after { content: "▴"; }
+  .all .list { max-height: 220px; overflow-y: auto; padding: 0 12px 12px; }
+  .all h4 { margin: 10px 0 5px; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #8a7fa0; }
+  .all .q { display: block; width: 100%; margin-bottom: 4px; padding: 7px 10px; border: 1px solid #ddd4ee; border-radius: 8px; background: #fff; color: #3b2d63; font-size: 12.5px; text-align: left; cursor: pointer; }
+  .all .q:hover { border-color: #7d5fc6; background: #f8f4ff; }
   form { display: flex; gap: 8px; padding: 12px 14px; border-top: 1px solid #e6e1ef; }
   input { flex: 1; min-width: 0; min-height: 42px; padding: 0 12px; border: 1px solid #d2c9e2; border-radius: 10px; font-size: 14.5px; }
   input:focus { outline: 2px solid #7452bd; outline-offset: -1px; }
@@ -96,6 +106,10 @@ root.innerHTML = `
   </header>
   <div class="log" role="log" aria-live="polite"></div>
   <div class="quick"></div>
+  <details class="all">
+    <summary><span></span></summary>
+    <div class="list"></div>
+  </details>
   <form>
     <input type="text" placeholder="Например: свободен ли зал в субботу?" aria-label="Вопрос помощнику" required>
     <button type="submit">Спросить</button>
@@ -148,6 +162,31 @@ for (const question of QUICK) {
   button.textContent = question;
   button.addEventListener("click", () => void send(question));
   quick.append(button);
+}
+
+// Полный набор проверочных вопросов — отдельным раскрытием, а не на виду.
+// Категории подписаны намеренно: кризисные сценарии не должны открываться
+// случайно на разговоре с центром.
+const all = root.querySelector(".all");
+const groups = new Map();
+for (const item of preparedQuestions) {
+  if (!groups.has(item.category)) groups.set(item.category, []);
+  groups.get(item.category).push(item.question);
+}
+root.querySelector(".all summary span").textContent = `Все проверочные вопросы · ${preparedQuestions.length}`;
+const list = root.querySelector(".all .list");
+for (const [category, questions] of groups) {
+  const title = document.createElement("h4");
+  title.textContent = category;
+  list.append(title);
+  for (const question of questions) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "q";
+    button.textContent = question;
+    button.addEventListener("click", () => { all.removeAttribute("open"); void send(question); });
+    list.append(button);
+  }
 }
 
 launcher.addEventListener("click", () => {
