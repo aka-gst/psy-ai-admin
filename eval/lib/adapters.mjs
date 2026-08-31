@@ -44,7 +44,7 @@ async function loadHostedWithSelector(withSearch = true) {
   if (!probe?.ok) throw new Error(`Модель недоступна: ${baseUrl}.`);
   const tuned = JSON.parse(JSON.stringify(catalog));
   tuned.pipeline = tuned.pipeline.filter((step) => withSearch || !step.search);
-  tuned.pipeline.push({ select: true });
+  if (!tuned.pipeline.some((step) => step.select)) tuned.pipeline.push({ select: true });
   const client = engine.createChatClient({ baseUrl, model, timeoutMs: 30000 });
   const assistant = engine.createAssistant(tuned, {
     crisisClassifier: engine.createCrisisClassifier({ ask: client }),
