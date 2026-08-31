@@ -75,8 +75,12 @@ root.innerHTML = `
   .from-bot.boundary { background: #fff8e9; border-color: #e3cfa6; }
   .from-bot a { display: block; margin-top: 9px; padding: 10px 12px; border: 1px solid #7353b8; border-radius: 10px; color: #3e2a72; font-weight: 600; text-decoration: none; font-size: 13.5px; }
   .from-bot a:hover { background: #f6f1ff; }
-  .quick { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 14px 10px; background: #f7f5fb; }
-  .quick button { padding: 7px 11px; border: 1px solid #cdbfe8; border-radius: 999px; background: #fff; color: #45327a; font-size: 12.5px; cursor: pointer; }
+  /* По две в ряд и во всю ширину: столбиком они съедали половину панели. */
+  /* minmax(0,1fr), а не 1fr: иначе длинное слово раздвигает свою колонку. */
+  .quick { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; padding: 0 14px 10px; background: #f7f5fb; }
+  .quick button { padding: 8px 10px; border: 1px solid #cdbfe8; border-radius: 10px; background: #fff; color: #45327a; font-size: 12.5px; line-height: 1.3; text-align: center; cursor: pointer; }
+  /* Нечётная последняя занимает ряд целиком, чтобы не висел огрызок. */
+  .quick button:last-child:nth-child(odd) { grid-column: 1 / -1; }
   .quick button:hover { border-color: #7d5fc6; }
   .all { background: #f7f5fb; border-top: 1px solid #e6e1ef; }
   .all summary { padding: 10px 14px; font-size: 12.5px; font-weight: 600; color: #45327a; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; }
