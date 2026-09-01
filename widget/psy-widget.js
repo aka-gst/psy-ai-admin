@@ -149,7 +149,7 @@ root.innerHTML = `
   </details>
   <form>
     <input type="text" placeholder="Например: свободен ли зал в субботу?" aria-label="Вопрос помощнику" required>
-    <button type="button" class="mic" aria-label="Спросить голосом" aria-pressed="false" hidden>🎤</button>
+    <button type="button" class="mic" aria-label="Спросить голосом" title="Речь распознаёт браузер: звук обрабатывается его службой распознавания" aria-pressed="false" hidden>🎤</button>
     <button type="submit">Спросить</button>
   </form>
   <p class="emergency">Помощник не оказывает помощи и не распознаёт состояние человека надёжно. При риске для жизни — своей или чужой — звоните 112 или в местные экстренные службы.</p>
