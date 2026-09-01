@@ -21,7 +21,7 @@ if alive http://127.0.0.1:4180/api/config; then
 else
   echo "поднимаю v2 на 4180…"
   ( cd "$ROOT/v2" && LLM_BASE_URL="${LLM_BASE_URL:-http://127.0.0.1:11434}" \
-      CHAT_MODEL="${LLM_MODEL:-qwen3:8b}" ALLOWED_ORIGINS="http://127.0.0.1:4700,http://localhost:4700" ASSISTANT_CATALOG="hosted-demo/app/center-content.json" nohup node server.mjs > "$LOGS/v2.log" 2>&1 < /dev/null & )
+      CHAT_MODEL="${LLM_MODEL:-qwen3:8b}" ALLOWED_ORIGINS="http://127.0.0.1:4700,http://localhost:4700" ASSISTANT_CATALOG="hosted-demo/app/center-content.json" ASSISTANT_DOCUMENTS="data/private/documents.json" nohup node server.mjs > "$LOGS/v2.log" 2>&1 < /dev/null & )
 fi
 
 # --- показ виджета поверх сохранённых страниц центра ---

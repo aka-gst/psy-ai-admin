@@ -15,6 +15,7 @@ export const COMPOSE_PROMPT = `Ты администратор психолог�
 
 Отвечай ТОЛЬКО по сведениям ниже. Если в них нет ответа — так и скажи и предложи открыть страницу.
 Не придумывай цены, даты, время, адреса, имена и условия: любое число должно встречаться в сведениях.
+Если в сведениях есть конкретика — назови её: дату, название мероприятия, формат, цену. Отсылать к странице в общих словах, когда ответ есть в сведениях, нельзя.
 Не давай советов о здоровье, не ставь диагнозов, не обещай результат.
 Обращайся к посетителю на «вы».
 Две-три короткие фразы, без приветствия и без подписи.`;
@@ -50,7 +51,7 @@ export function createComposer(options = {}) {
 
 // Материал для ответа: подпись, описание и текст страницы плюс подтверждённые
 // записи FAQ, относящиеся к ней. Ничего сверх того, что уже утверждено.
-export function contextForSource(catalog, sourceKey) {
+export function contextForSource(catalog, sourceKey, { maxChars = 3500 } = {}) {
   const source = catalog.sources?.[sourceKey];
   if (!source) return "";
   const parts = [source.label, source.description, source.about];
@@ -58,5 +59,11 @@ export function contextForSource(catalog, sourceKey) {
   for (const entry of catalog.faq ?? []) {
     if (entry.source === sourceKey && entry.confirmed) parts.push(entry.text);
   }
-  return parts.filter(Boolean).join(" ");
+  // Текст самой страницы — то, из чего берутся даты, названия и цены. Без него
+  // помощник знает только общее описание раздела и на «когда ближайший
+  // семинар» ответить не может.
+  for (const document of catalog.documents ?? []) {
+    if (document.source === sourceKey && document.text) parts.push(document.text);
+  }
+  return parts.filter(Boolean).join(" ").slice(0, maxChars);
 }

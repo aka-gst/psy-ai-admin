@@ -26,6 +26,19 @@ const catalogPath = process.env.ASSISTANT_CATALOG
   ? (process.env.ASSISTANT_CATALOG.startsWith("/") ? process.env.ASSISTANT_CATALOG : join(root, "..", process.env.ASSISTANT_CATALOG))
   : join(root, "config/assistant.json");
 const assistantCatalog = JSON.parse(await readFile(catalogPath, "utf8"));
+
+// Выгрузка открытых страниц. Не обязательна и в репозиторий не попадает: без
+// неё помощник знает описания разделов, с ней — их содержимое, включая даты и
+// названия. Собирается scripts/build-public-index.py.
+if (process.env.ASSISTANT_DOCUMENTS) {
+  try {
+    const path = process.env.ASSISTANT_DOCUMENTS.startsWith("/") ? process.env.ASSISTANT_DOCUMENTS : join(root, "..", process.env.ASSISTANT_DOCUMENTS);
+    assistantCatalog.documents = JSON.parse(await readFile(path, "utf8"));
+    console.log(`Выгрузка страниц подключена: ${assistantCatalog.documents.length}`);
+  } catch {
+    console.log("Выгрузка страниц не найдена — помощник работает по описаниям разделов");
+  }
+}
 // Таймауты разные по назначению. Кризисный рубеж обязан отвечать быстро:
 // человек в беде не может ждать. Сочинение длиннее по определению — 220
 // токенов не влезают в те же секунды, и общий таймаут делал его то удачным,

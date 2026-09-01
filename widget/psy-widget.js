@@ -110,9 +110,19 @@ root.innerHTML = `
   input { flex: 1; min-width: 0; min-height: 42px; padding: 0 12px; border: 1px solid #d2c9e2; border-radius: 10px; font-size: 14.5px; }
   input:focus { outline: 2px solid #7452bd; outline-offset: -1px; }
   form button { min-height: 42px; padding: 0 16px; border: 0; border-radius: 10px; background: #4a3585; color: #fff; font-weight: 600; cursor: pointer; }
-  .mode { display: flex; align-items: center; gap: 7px; padding: 0 14px 10px; background: #f7f5fb; font-size: 12px; color: #5d5570; }
-  .mode input { width: auto; min-height: 0; }
-  .mode b { color: #45327a; font-weight: 600; }
+  /* Общее правило input красило и галочку: она вытягивалась в тонкую полоску
+     и не читалась как переключатель. Поэтому свой вид, а не сброс. */
+  .mode { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 14px 10px; padding: 9px 12px; border: 1px solid #ddd4ee; border-radius: 12px; background: #fff; cursor: pointer; }
+  .mode span { display: grid; gap: 2px; }
+  .mode b { color: #2f2547; font-size: 13px; font-weight: 600; }
+  .mode small { color: #7c7590; font-size: 11.5px; line-height: 1.35; }
+  .mode input { flex: 0 0 auto; appearance: none; -webkit-appearance: none; width: 38px; min-width: 38px; min-height: 0; height: 22px; margin: 0; padding: 0; border: 0; border-radius: 999px; background: #d5cde6; position: relative; cursor: pointer; transition: background .16s ease; }
+  .mode input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform .16s ease; }
+  .mode input:checked { background: #4a3585; }
+  .mode input:checked::after { transform: translateX(16px); }
+  .mode input:focus-visible { outline: 2px solid #7452bd; outline-offset: 2px; }
+  .mode:has(input:checked) { border-color: #4a3585; background: #f6f2ff; }
+  @media (prefers-reduced-motion: reduce) { .mode input, .mode input::after { transition: none; } }
   .from-bot .tag { display: block; margin-top: 7px; font-size: 10.5px; letter-spacing: .05em; text-transform: uppercase; color: #8a7fa0; }
   .emergency { margin: 0; padding: 10px 14px 13px; font-size: 11.5px; line-height: 1.45; color: #6d6579; background: #f2eef9; }
   @media (prefers-reduced-motion: reduce) { .launcher { transition: none; } }
@@ -129,7 +139,10 @@ root.innerHTML = `
   </header>
   <div class="log" role="log" aria-live="polite"></div>
   <div class="quick"></div>
-  <label class="mode" hidden><input type="checkbox"> <b>Свободный ответ</b> — помощник формулирует сам, а не выдаёт заготовку</label>
+  <label class="mode" hidden>
+    <span><b>Свободный ответ</b><small>помощник формулирует сам, а не выдаёт заготовку</small></span>
+    <input type="checkbox" role="switch" aria-label="Свободный ответ">
+  </label>
   <details class="all">
     <summary><span></span></summary>
     <div class="list"></div>
