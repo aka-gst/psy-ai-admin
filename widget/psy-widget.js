@@ -23,7 +23,9 @@ const QUICK = [
 
 // Свободный режим доступен только с сервером: сочиняет модель, а в браузере
 // её нет. Без сервера переключатель не показывается вовсе.
-let freeMode = false;
+// Включён по умолчанию: заготовка — это запасной путь, а не основной.
+// Выключается, чтобы показать разницу.
+let freeMode = true;
 const chatEndpoint = endpoint.replace(/\/api\/ask$/, "/api/chat");
 
 const ask = async (question, lastSourceKey) => {
@@ -140,8 +142,8 @@ root.innerHTML = `
   <div class="log" role="log" aria-live="polite"></div>
   <div class="quick"></div>
   <label class="mode" hidden>
-    <span><b>Свободный ответ</b><small>помощник формулирует сам, а не выдаёт заготовку</small></span>
-    <input type="checkbox" role="switch" aria-label="Свободный ответ">
+    <span><b>Свободный ответ</b><small>помощник формулирует сам. Выключите, чтобы увидеть заготовку</small></span>
+    <input type="checkbox" role="switch" aria-label="Свободный ответ" checked>
   </label>
   <details class="all">
     <summary><span></span></summary>
