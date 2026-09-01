@@ -36,8 +36,34 @@ const PAGES = {
 const MIME = { ".js": "text/javascript; charset=utf-8", ".mjs": "text/javascript; charset=utf-8", ".json": "application/json; charset=utf-8" };
 
 const inject = (html) => {
-  const tag = `<script type="module" data-psy-widget src="/__widget/psy-widget.js"${endpoint ? ` data-endpoint="${endpoint}"` : ""}></script>`;
+  const tag = `<script type="module" data-psy-widget src="/__widget/psy-widget.js" data-endpoint="/api/ask"></script>`;
   return html.includes("</body>") ? html.replace("</body>", `${tag}</body>`) : html + tag;
+};
+
+// Помощник проксируется через тот же адрес, что и страницы. Тогда публичная
+// ссылка одна, и браузеру посетителя не нужно ходить на localhost.
+// Проксируются РОВНО три маршрута помощника: панель менеджера и всё
+// остальное наружу не выходит.
+const PROXY = new Set(["/api/ask", "/api/chat", "/api/config"]);
+const upstream = flag("upstream") || "http://127.0.0.1:4180";
+
+const proxy = async (request, response, pathname) => {
+  const chunks = [];
+  for await (const chunk of request) chunks.push(chunk);
+  const body = Buffer.concat(chunks);
+  try {
+    const answer = await fetch(`${upstream}${pathname}`, {
+      method: request.method,
+      headers: { "content-type": request.headers["content-type"] ?? "application/json" },
+      body: request.method === "GET" ? undefined : body,
+    });
+    const text = await answer.text();
+    response.writeHead(answer.status, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });
+    response.end(text);
+  } catch {
+    response.writeHead(502, { "content-type": "application/json; charset=utf-8" });
+    response.end(JSON.stringify({ error: "Помощник сейчас недоступен." }));
+  }
 };
 
 const server = createServer(async (request, response) => {
@@ -46,6 +72,8 @@ const server = createServer(async (request, response) => {
     response.writeHead(status, { "content-type": type, "cache-control": "no-store" });
     response.end(body);
   };
+
+  if (PROXY.has(url.pathname)) return proxy(request, response, url.pathname);
 
   // Файлы виджета и движка отдаются из репозитория как есть.
   if (url.pathname.startsWith("/__widget/") || url.pathname.startsWith("/engine/") || url.pathname.startsWith("/hosted-demo/")) {
@@ -69,6 +97,6 @@ const server = createServer(async (request, response) => {
 
 server.listen(port, "127.0.0.1", () => {
   console.log(`Показ виджета: http://127.0.0.1:${port}/`);
-  console.log(`Ответы: ${endpoint ? `сервер ${endpoint}` : "движок в браузере (кризис — только шаблоны)"}`);
+  console.log(`Ответы: через ${upstream} (проксируются только /api/ask, /api/chat, /api/config)`);
   console.log(`Страницы: ${Object.keys(PAGES).join("  ")}`);
 });
