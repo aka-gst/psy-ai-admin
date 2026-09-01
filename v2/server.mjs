@@ -5,7 +5,7 @@ import { extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createBooking, createSlot, createSpecialist, decideBooking, deleteAvailableSlot, listAvailableSlots, listBookings, listManagedSlots, listSpecialists, openDatabase, seedSchedule, setSpecialistActive } from "./lib/database.mjs";
 import { clientKey, createLoginGuard, createSession, isSecureRequest, readCookie, safeEqual, sameOrigin, verifySession } from "./lib/security.mjs";
-import { clientFromEnvironment, createAssistant, createCrisisClassifier, createTopicSelector, topicsFromCatalog } from "../engine/index.mjs";
+import { clientFromEnvironment, contextForSource, createAssistant, createComposer, createCrisisClassifier, createTopicSelector, topicsFromCatalog } from "../engine/index.mjs";
 
 const root = fileURLToPath(new URL(".", import.meta.url));
 const config = JSON.parse(await readFile(join(root, "config/center.json"), "utf8"));
@@ -26,10 +26,17 @@ const catalogPath = process.env.ASSISTANT_CATALOG
   ? (process.env.ASSISTANT_CATALOG.startsWith("/") ? process.env.ASSISTANT_CATALOG : join(root, "..", process.env.ASSISTANT_CATALOG))
   : join(root, "config/assistant.json");
 const assistantCatalog = JSON.parse(await readFile(catalogPath, "utf8"));
-const chat = clientFromEnvironment(process.env);
+// Таймауты разные по назначению. Кризисный рубеж обязан отвечать быстро:
+// человек в беде не может ждать. Сочинение длиннее по определению — 220
+// токенов не влезают в те же секунды, и общий таймаут делал его то удачным,
+// то нет, что на показе выглядит как «иногда работает».
+const chat = clientFromEnvironment(process.env, { timeoutMs: 4000 });
+const selectorChat = clientFromEnvironment(process.env, { timeoutMs: 12000 });
+const composerChat = clientFromEnvironment(process.env, { timeoutMs: 40000 });
+const composer = composerChat ? createComposer({ ask: composerChat }) : null;
 const assistant = createAssistant(assistantCatalog, chat ? {
   crisisClassifier: createCrisisClassifier({ ask: chat }),
-  topicSelector: createTopicSelector({ ask: chat, topics: topicsFromCatalog(assistantCatalog) }),
+  topicSelector: createTopicSelector({ ask: selectorChat, topics: topicsFromCatalog(assistantCatalog) }),
 } : {});
 
 // Виджет живёт на чужом сайте, значит его запрос приходит с другого источника.
@@ -86,9 +93,23 @@ async function serveStatic(pathname, response) {
   }
 }
 
+// Первый запрос к холодной модели идёт в разы дольше остальных и не влезает
+// в таймаут — тогда первый же вопрос человека получает «не знаю». Прогреваем
+// заранее и в фоне: запуск сервера от этого не задерживается.
+if (chat) {
+  void (async () => {
+    const started = Date.now();
+    await Promise.all([
+      chat([{ role: "user", content: "Ответь одним словом: готов" }], { maxTokens: 4 }),
+      selectorChat([{ role: "user", content: "Ответь одним словом: готов" }], { maxTokens: 4 }),
+    ]);
+    console.log(`Модель прогрета за ${Date.now() - started} мс`);
+  })();
+}
+
 export const server = createServer(async (request, response) => {
   const url = new URL(request.url, `http://${request.headers.host || "localhost"}`);
-  const cors = ["/api/ask", "/api/config"].includes(url.pathname) ? corsHeaders(request) : {};
+  const cors = ["/api/ask", "/api/chat", "/api/config"].includes(url.pathname) ? corsHeaders(request) : {};
   if (request.method === "OPTIONS") {
     response.writeHead(Object.keys(cors).length ? 204 : 403, cors);
     return response.end();
@@ -96,6 +117,26 @@ export const server = createServer(async (request, response) => {
   try {
     if (request.method === "GET" && url.pathname === "/api/config") return json(response, 200, { centerName: config.centerName, bookingNotice: config.bookingNotice, consentText: config.consentText, emergencyNotice: assistant.responses.emergencyNotice }, cors);
     if (request.method === "GET" && url.pathname === "/api/slots") return json(response, 200, { slots: listAvailableSlots(db) });
+    if (request.method === "POST" && url.pathname === "/api/chat") {
+      // Свободный ответ. Страницу выбирает движок, границы безопасности
+      // проходят раньше и на сочинение не отдаются никогда.
+      const body = await parseBody(request);
+      const question = clean(body.question, 500);
+      if (!question) return json(response, 400, { error: "Напишите вопрос." }, cors);
+      const previous = clean(body.lastSourceKey, 40) || undefined;
+      const answer = await assistant.ask(question, previous);
+      const sourceKey = answer.sourceKeys[0];
+      const composed = (composer && answer.kind === "route" && sourceKey)
+        ? await composer({ question, context: contextForSource(assistantCatalog, sourceKey), fallback: answer.text })
+        : null;
+      return json(response, 200, {
+        text: composed ?? answer.text,
+        kind: answer.kind,
+        composed: Boolean(composed),
+        sourceKeys: answer.sourceKeys,
+        sources: answer.sourceKeys.map((key) => assistant.sources[key]),
+      }, cors);
+    }
     if (request.method === "POST" && url.pathname === "/api/ask") {
       // Вопрос нигде не сохраняется: ни в базе, ни в журнале сервера.
       const body = await parseBody(request);

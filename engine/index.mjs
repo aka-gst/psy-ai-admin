@@ -2,12 +2,13 @@
 // публичную витрину, и серверный продукт: правило безопасности, добавленное
 // здесь, действует в обоих сразу.
 import { prepareCatalog } from "./catalog.mjs";
+import { createComposer, contextForSource } from "./composer.mjs";
 import { createCrisisClassifier } from "./crisis-classifier.mjs";
 import { createChatClient, clientFromEnvironment } from "./llm-client.mjs";
 import { createTopicSelector } from "./topic-selector.mjs";
 import { createRouter, safetyStepNames } from "./router.mjs";
 
-export { prepareCatalog, safetyStepNames, createCrisisClassifier, createChatClient, clientFromEnvironment, createTopicSelector };
+export { prepareCatalog, safetyStepNames, createCrisisClassifier, createChatClient, clientFromEnvironment, createTopicSelector, createComposer, contextForSource };
 
 // Темы для селектора берутся из тех же описаний источников, что и поиск.
 export const topicsFromCatalog = (catalog) => Object.entries(catalog.sources ?? {})

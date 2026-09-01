@@ -21,12 +21,17 @@ const QUICK = [
   "Хочу консультацию онлайн",
 ];
 
+// Свободный режим доступен только с сервером: сочиняет модель, а в браузере
+// её нет. Без сервера переключатель не показывается вовсе.
+let freeMode = false;
+const chatEndpoint = endpoint.replace(/\/api\/ask$/, "/api/chat");
+
 const ask = async (question, lastSourceKey) => {
   if (!endpoint) {
     const answer = await local.ask(question, lastSourceKey);
     return { ...answer, sources: answer.sourceKeys.map((key) => local.sources[key]) };
   }
-  const response = await fetch(endpoint, {
+  const response = await fetch(freeMode ? chatEndpoint : endpoint, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ question, lastSourceKey }),
@@ -95,6 +100,10 @@ root.innerHTML = `
   input { flex: 1; min-width: 0; min-height: 42px; padding: 0 12px; border: 1px solid #d2c9e2; border-radius: 10px; font-size: 14.5px; }
   input:focus { outline: 2px solid #7452bd; outline-offset: -1px; }
   form button { min-height: 42px; padding: 0 16px; border: 0; border-radius: 10px; background: #4a3585; color: #fff; font-weight: 600; cursor: pointer; }
+  .mode { display: flex; align-items: center; gap: 7px; padding: 0 14px 10px; background: #f7f5fb; font-size: 12px; color: #5d5570; }
+  .mode input { width: auto; min-height: 0; }
+  .mode b { color: #45327a; font-weight: 600; }
+  .from-bot .tag { display: block; margin-top: 7px; font-size: 10.5px; letter-spacing: .05em; text-transform: uppercase; color: #8a7fa0; }
   .emergency { margin: 0; padding: 10px 14px 13px; font-size: 11.5px; line-height: 1.45; color: #6d6579; background: #f2eef9; }
   @media (prefers-reduced-motion: reduce) { .launcher { transition: none; } }
 </style>
@@ -110,6 +119,7 @@ root.innerHTML = `
   </header>
   <div class="log" role="log" aria-live="polite"></div>
   <div class="quick"></div>
+  <label class="mode" hidden><input type="checkbox"> <b>Свободный ответ</b> — помощник формулирует сам, а не выдаёт заготовку</label>
   <details class="all">
     <summary><span></span></summary>
     <div class="list"></div>
@@ -125,11 +135,20 @@ root.innerHTML = `
 const launcher = root.querySelector(".launcher");
 const log = root.querySelector(".log");
 const form = root.querySelector("form");
-const input = root.querySelector("input");
+// Именно поле ввода, а не первый input в дереве: переключатель режима стоит
+// выше по разметке, и querySelector("input") начал брать его галочку —
+// на сервер уходило значение "on" вместо вопроса человека.
+const input = root.querySelector('form input[type="text"]');
 const quick = root.querySelector(".quick");
 let lastSourceKey;
 
-const say = (text, { who = "bot", kind = "", sources = [] } = {}) => {
+const mode = root.querySelector(".mode");
+if (endpoint) {
+  mode.hidden = false;
+  mode.querySelector("input").addEventListener("change", (event) => { freeMode = event.target.checked; });
+}
+
+const say = (text, { who = "bot", kind = "", sources = [], composed = false } = {}) => {
   const node = document.createElement("div");
   node.className = `msg ${who === "user" ? "from-user" : `from-bot ${kind}`}`.trim();
   node.append(document.createTextNode(text));
@@ -141,6 +160,12 @@ const say = (text, { who = "bot", kind = "", sources = [] } = {}) => {
     link.rel = "noreferrer";
     link.textContent = `${source.label} →`;
     node.append(link);
+  }
+  if (composed) {
+    const tag = document.createElement("span");
+    tag.className = "tag";
+    tag.textContent = "сформулировано моделью по странице центра";
+    node.append(tag);
   }
   log.append(node);
   log.scrollTop = log.scrollHeight;
@@ -154,7 +179,7 @@ async function send(question) {
   try {
     const answer = await ask(clean, lastSourceKey);
     lastSourceKey = answer.sourceKeys?.[0] ?? lastSourceKey;
-    say(answer.text, { kind: answer.kind, sources: answer.sources ?? [] });
+    say(answer.text, { kind: answer.kind, sources: answer.sources ?? [], composed: Boolean(answer.composed) });
   } catch {
     say("Не удалось получить ответ. Откройте нужный раздел на сайте центра или позвоните администратору.");
   }
