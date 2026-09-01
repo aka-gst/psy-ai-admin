@@ -80,6 +80,12 @@ root.innerHTML = `
   .from-bot.boundary { background: #fff8e9; border-color: #e3cfa6; }
   .from-bot a { display: block; margin-top: 9px; padding: 10px 12px; border: 1px solid #7353b8; border-radius: 10px; color: #3e2a72; font-weight: 600; text-decoration: none; font-size: 13.5px; }
   .from-bot a:hover { background: #f6f1ff; }
+  /* Молчание неотличимо от поломки: свободный ответ идёт секунды. */
+  .thinking { display: flex; align-items: center; gap: 8px; padding: 11px 14px; border-radius: 14px; background: #fff; border: 1px solid #e2dcf0; color: #6d6579; font-size: 13.5px; }
+  .thinking i { width: 7px; height: 7px; border-radius: 50%; background: #7d5fc6; animation: pulse 1s infinite ease-in-out; }
+  @keyframes pulse { 0%, 100% { opacity: .3 } 50% { opacity: 1 } }
+  @media (prefers-reduced-motion: reduce) { .thinking i { animation: none } }
+  form button[disabled] { opacity: .55; cursor: default; }
   /* По две в ряд и во всю ширину: столбиком они съедали половину панели. */
   /* minmax(0,1fr), а не 1fr: иначе длинное слово раздвигает свою колонку. */
   .quick { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; padding: 0 14px 10px; background: #f7f5fb; }
@@ -171,17 +177,41 @@ const say = (text, { who = "bot", kind = "", sources = [], composed = false } = 
   log.scrollTop = log.scrollHeight;
 };
 
+let busy = false;
+
 async function send(question) {
   const clean = question.trim();
-  if (!clean) return;
+  if (!clean || busy) return;
+  busy = true;
+  const submit = root.querySelector("form button");
+  submit.disabled = true;
   say(clean, { who: "user" });
   input.value = "";
+
+  // Видимое ожидание вместо тишины: человек должен понимать, что вопрос ушёл.
+  const waiting = document.createElement("div");
+  waiting.className = "thinking";
+  waiting.setAttribute("role", "status");
+  waiting.innerHTML = "<i></i>";
+  waiting.append(document.createTextNode(freeMode ? "Формулирую ответ…" : "Ищу нужную страницу…"));
+  log.append(waiting);
+  log.scrollTop = log.scrollHeight;
+
+  // Свой предел ожидания: иначе повисший сервер оставляет панель молчащей.
+  const limit = new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), freeMode ? 45000 : 15000));
+
   try {
-    const answer = await ask(clean, lastSourceKey);
+    const answer = await Promise.race([ask(clean, lastSourceKey), limit]);
     lastSourceKey = answer.sourceKeys?.[0] ?? lastSourceKey;
     say(answer.text, { kind: answer.kind, sources: answer.sources ?? [], composed: Boolean(answer.composed) });
-  } catch {
-    say("Не удалось получить ответ. Откройте нужный раздел на сайте центра или позвоните администратору.");
+  } catch (error) {
+    say(error?.message === "timeout"
+      ? "Ответ не пришёл вовремя. Попробуйте ещё раз или откройте нужный раздел на сайте центра."
+      : "Помощник сейчас недоступен. Откройте нужный раздел на сайте центра или позвоните администратору.");
+  } finally {
+    waiting.remove();
+    submit.disabled = false;
+    busy = false;
   }
 }
 
