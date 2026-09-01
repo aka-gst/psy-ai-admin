@@ -68,13 +68,24 @@ root.innerHTML = `
     box-shadow: 0 24px 70px rgba(28,18,56,.3);
   }
   :host([open]) .panel { display: flex; }
+  /* Во весь экран: длинные ответы и список из шестидесяти вопросов в окошке
+     384 на 640 читаются тяжело. */
+  :host([expanded]) .panel { inset: 0; right: 0; bottom: 0; width: 100vw; max-height: 100vh; border-radius: 0; }
+  :host([expanded]) .log { padding: 22px max(22px, calc((100vw - 900px) / 2)); }
+  :host([expanded]) .msg { max-width: min(760px, 100%); }
+  :host([expanded]) .quick, :host([expanded]) .mode, :host([expanded]) form, :host([expanded]) .emergency, :host([expanded]) .all { padding-inline: max(22px, calc((100vw - 900px) / 2)); }
+  :host([expanded]) .mode { margin-inline: max(22px, calc((100vw - 900px) / 2)); }
   :host([open]) .launcher { display: none; }
   header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; background: #4a3585; color: #fff; }
   header b { font-size: 15px; }
   header small { display: block; opacity: .78; font-size: 11.5px; font-weight: 400; }
   header button { border: 0; background: transparent; color: inherit; font-size: 20px; line-height: 1; cursor: pointer; padding: 4px 6px; border-radius: 6px; }
   header button:hover { background: rgba(255,255,255,.14); }
-  .log { flex: 1; overflow-y: auto; padding: 14px; display: grid; gap: 10px; background: #f7f5fb; }
+  .head-actions { display: flex; align-items: center; gap: 2px; }
+  .expand { font-size: 16px; }
+  /* align-content: start — иначе единственное сообщение растягивается
+     гридом на всю высоту окна и выглядит пустой коробкой. */
+  .log { flex: 1; overflow-y: auto; padding: 14px; display: grid; align-content: start; gap: 10px; background: #f7f5fb; }
   .msg { max-width: 92%; padding: 11px 14px; border-radius: 14px; font-size: 14.5px; line-height: 1.5; }
   .from-user { justify-self: end; background: #2d3d69; color: #fff; border-bottom-right-radius: 5px; }
   .from-bot { background: #fff; border: 1px solid #e2dcf0; border-bottom-left-radius: 5px; }
@@ -137,7 +148,10 @@ root.innerHTML = `
 <section class="panel" aria-label="Помощник центра">
   <header>
     <div><b>Помощник центра</b><small>Отвечает по открытым страницам сайта</small></div>
-    <button type="button" class="close" aria-label="Свернуть">×</button>
+    <span class="head-actions">
+      <button type="button" class="expand" aria-label="Открыть во весь экран" aria-pressed="false" title="Во весь экран">⤢</button>
+      <button type="button" class="close" aria-label="Закрыть помощника">×</button>
+    </span>
   </header>
   <div class="log" role="log" aria-live="polite"></div>
   <div class="quick"></div>
@@ -174,6 +188,12 @@ if (endpoint) {
   mode.querySelector("input").addEventListener("change", (event) => { freeMode = event.target.checked; });
 }
 
+// Ответ подводится началом к верху окна, а не концом к низу: иначе длинный
+// ответ открывается на середине фразы и его приходится отматывать вручную.
+const scrollToStart = (node) => {
+  log.scrollTop += node.getBoundingClientRect().top - log.getBoundingClientRect().top;
+};
+
 const say = (text, { who = "bot", kind = "", sources = [], composed = false } = {}) => {
   const node = document.createElement("div");
   node.className = `msg ${who === "user" ? "from-user" : `from-bot ${kind}`}`.trim();
@@ -194,7 +214,9 @@ const say = (text, { who = "bot", kind = "", sources = [], composed = false } = 
     node.append(tag);
   }
   log.append(node);
-  log.scrollTop = log.scrollHeight;
+  if (who === "bot") scrollToStart(node);
+  else log.scrollTop = log.scrollHeight;
+  return node;
 };
 
 let busy = false;
@@ -274,7 +296,18 @@ launcher.addEventListener("click", () => {
   host.setAttribute("open", "");
   input.focus();
 });
-root.querySelector(".close").addEventListener("click", () => host.removeAttribute("open"));
+root.querySelector(".close").addEventListener("click", () => { host.removeAttribute("open"); host.removeAttribute("expanded"); });
+
+const expand = root.querySelector(".expand");
+expand.addEventListener("click", () => {
+  const now = !host.hasAttribute("expanded");
+  host.toggleAttribute("expanded", now);
+  expand.setAttribute("aria-pressed", String(now));
+  expand.textContent = now ? "⤡" : "⤢";
+  expand.title = now ? "Свернуть в окно" : "Во весь экран";
+  expand.setAttribute("aria-label", expand.title);
+  input.focus();
+});
 form.addEventListener("submit", (event) => { event.preventDefault(); void send(input.value); });
 
 // Голос: распознавание речи браузером и озвучивание ответа. Своей логики
