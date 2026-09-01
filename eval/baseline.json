@@ -5,11 +5,11 @@
   "datasets": {
     "controls": {
       "role": "regression",
-      "total": 15,
-      "passed": 15,
+      "total": 19,
+      "passed": 19,
       "accuracy": 100,
-      "criticalTotal": 10,
-      "criticalPassed": 10,
+      "criticalTotal": 14,
+      "criticalPassed": 14,
       "confidentlyWrong": 0
     },
     "heldout": {

@@ -86,6 +86,10 @@ root.innerHTML = `
   @keyframes pulse { 0%, 100% { opacity: .3 } 50% { opacity: 1 } }
   @media (prefers-reduced-motion: reduce) { .thinking i { animation: none } }
   form button[disabled] { opacity: .55; cursor: default; }
+  .mic { flex: 0 0 auto; width: 42px; min-height: 42px; padding: 0; border: 1px solid #cdbfe8; border-radius: 10px; background: #fff; color: #45327a; cursor: pointer; font-size: 17px; line-height: 1; }
+  .mic:hover { border-color: #7d5fc6; }
+  .mic[aria-pressed="true"] { background: #4a3585; border-color: #4a3585; color: #fff; }
+  .mic[hidden] { display: none; }
   /* По две в ряд и во всю ширину: столбиком они съедали половину панели. */
   /* minmax(0,1fr), а не 1fr: иначе длинное слово раздвигает свою колонку. */
   .quick { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; padding: 0 14px 10px; background: #f7f5fb; }
@@ -132,6 +136,7 @@ root.innerHTML = `
   </details>
   <form>
     <input type="text" placeholder="Например: свободен ли зал в субботу?" aria-label="Вопрос помощнику" required>
+    <button type="button" class="mic" aria-label="Спросить голосом" aria-pressed="false" hidden>🎤</button>
     <button type="submit">Спросить</button>
   </form>
   <p class="emergency">Помощник не оказывает помощи и не распознаёт состояние человека надёжно. При риске для жизни — своей или чужой — звоните 112 или в местные экстренные службы.</p>
@@ -204,6 +209,8 @@ async function send(question) {
     const answer = await Promise.race([ask(clean, lastSourceKey), limit]);
     lastSourceKey = answer.sourceKeys?.[0] ?? lastSourceKey;
     say(answer.text, { kind: answer.kind, sources: answer.sources ?? [], composed: Boolean(answer.composed) });
+    speak(answer.text);
+    spokenAsked = false;
   } catch (error) {
     say(error?.message === "timeout"
       ? "Ответ не пришёл вовремя. Попробуйте ещё раз или откройте нужный раздел на сайте центра."
@@ -254,5 +261,43 @@ launcher.addEventListener("click", () => {
 });
 root.querySelector(".close").addEventListener("click", () => host.removeAttribute("open"));
 form.addEventListener("submit", (event) => { event.preventDefault(); void send(input.value); });
+
+// Голос: распознавание речи браузером и озвучивание ответа. Своей логики
+// ответа тут нет — тот же путь, что у набранного вопроса.
+const Recognition = globalThis.SpeechRecognition ?? globalThis.webkitSpeechRecognition;
+const mic = root.querySelector(".mic");
+let spokenAsked = false;
+
+const speak = (text) => {
+  if (!spokenAsked || !("speechSynthesis" in globalThis)) return;
+  speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = "ru-RU";
+  speechSynthesis.speak(utterance);
+};
+
+if (Recognition) {
+  mic.hidden = false;
+  const recognition = new Recognition();
+  recognition.lang = "ru-RU";
+  recognition.interimResults = false;
+  let listening = false;
+  const stop = () => { listening = false; mic.setAttribute("aria-pressed", "false"); };
+
+  recognition.addEventListener("result", (event) => {
+    const heard = event.results[0][0].transcript.trim();
+    if (heard) { spokenAsked = true; void send(heard); }
+  });
+  recognition.addEventListener("error", () => { stop(); say("Не расслышал. Попробуйте ещё раз или наберите вопрос."); });
+  recognition.addEventListener("end", stop);
+
+  mic.addEventListener("click", () => {
+    if (listening) { recognition.stop(); stop(); return; }
+    if ("speechSynthesis" in globalThis) speechSynthesis.cancel();
+    listening = true;
+    mic.setAttribute("aria-pressed", "true");
+    recognition.start();
+  });
+}
 
 say("Здравствуйте. Спросите про расписание, консультации, обучение, клуб или аренду — покажу нужную страницу центра.");
