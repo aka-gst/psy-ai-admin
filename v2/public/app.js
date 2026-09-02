@@ -6,7 +6,7 @@ const result = document.querySelector('#result');
 const formatSlot = (item) => `${new Intl.DateTimeFormat('ru-RU', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(item.startsAt))} — ${item.specialistName}`;
 
 async function load() {
-  const [configResponse, slotsResponse] = await Promise.all([fetch('/api/config'), fetch('/api/slots')]);
+  const [configResponse, slotsResponse] = await Promise.all([fetch('api/config'), fetch('api/slots')]);
   const config = await configResponse.json();
   const { slots } = await slotsResponse.json();
   document.title = `Запись — ${config.centerName}`;
@@ -19,7 +19,7 @@ form.addEventListener('submit', async (event) => {
   event.preventDefault();
   const button = form.querySelector('button');
   button.disabled = true;
-  const response = await fetch('/api/bookings', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ slotId: slot.value, clientName: document.querySelector('#client-name').value, contact: document.querySelector('#contact').value, contactType: document.querySelector('#contact-type').value, consent: document.querySelector('#consent').checked }) });
+  const response = await fetch('api/bookings', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ slotId: slot.value, clientName: document.querySelector('#client-name').value, contact: document.querySelector('#contact').value, contactType: document.querySelector('#contact-type').value, consent: document.querySelector('#consent').checked }) });
   const data = await response.json();
   button.disabled = false;
   if (!response.ok) { result.hidden = false; result.className = 'result error'; result.textContent = data.error; return; }

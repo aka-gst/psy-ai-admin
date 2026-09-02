@@ -10,7 +10,7 @@ const escapeHtml = (value) => String(value).replace(/[&<>'"]/g, (char) => ({ '&'
 const formatDate = (value) => new Intl.DateTimeFormat('ru-RU', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
 
 async function api(path, options) {
-  const response = await fetch(path, options);
+  const response = await fetch(path.replace(/^\//, ''), options);
   const data = await response.json();
   if (!response.ok) throw Object.assign(new Error(data.error || 'Ошибка запроса.'), { status: response.status });
   return data;
