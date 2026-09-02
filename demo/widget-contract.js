@@ -1,7 +1,23 @@
-export function widgetPresentation(viewportWidth) {
-  return {
+export function widgetPresentation(viewportWidth, voiceCapabilities, askedByVoice = false) {
+  const presentation = {
     mode: viewportWidth <= 620 ? "bottom-sheet" : "side-panel",
     minTouchTarget: 44,
+  };
+
+  if (!voiceCapabilities) return presentation;
+
+  const inputAvailable = Boolean(voiceCapabilities.recognitionAvailable);
+  const outputAvailable = Boolean(voiceCapabilities.speechAvailable);
+  return {
+    ...presentation,
+    voice: {
+      inputAvailable,
+      outputAvailable,
+      fallbackMessage: inputAvailable
+        ? (outputAvailable ? "" : "Голосовой ответ недоступен в этом браузере. Ответ останется текстовым.")
+        : "Голосовой ввод недоступен в этом браузере. Напишите вопрос текстом.",
+      shouldSpeakReply: Boolean(askedByVoice && outputAvailable),
+    },
   };
 }
 

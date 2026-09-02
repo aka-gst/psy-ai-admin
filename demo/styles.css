@@ -83,6 +83,9 @@ button[type="submit"] { border: 0; border-radius: 9px; padding: 12px 17px; backg
 .psy-widget-suggestions button { padding: 8px 10px; }
 .psy-widget-form { display: flex; padding: 14px 16px; }
 .psy-widget-form button, .psy-widget-handoff-form button { min-height: var(--psy-widget-touch-target); border: 0; border-radius: 9px; padding: 10px 14px; background: #6955a4; color: #fff; font: inherit; font-weight: 800; cursor: pointer; }
+.psy-widget-mic { min-width: var(--psy-widget-touch-target); margin-right: 8px; padding: 0 !important; background: #fff !important; border: 1px solid #d3cae8 !important; color: #4b397c !important; font-size: 1.05rem !important; }
+.psy-widget-mic[aria-pressed="true"] { background: #4b397c !important; color: #fff !important; }
+.psy-widget-voice-status { min-height: 0; margin: -6px 16px 10px; color: #5d526e; font-size: .82rem; line-height: 1.35; }
 .psy-widget-handoff { padding: 0 16px 16px; }
 .psy-widget-handoff-open { width: 100%; padding: 9px 12px; }
 .psy-widget-handoff-form { display: grid; gap: 10px; margin-top: 10px; padding: 14px; border: 1px solid #ddd5ee; border-radius: 12px; background: #faf8ff; }

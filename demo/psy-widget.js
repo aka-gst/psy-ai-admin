@@ -23,8 +23,10 @@ mount.innerHTML = `
       <form class="psy-widget-form">
         <label class="sr-only" for="psy-widget-question">Вопрос помощнику</label>
         <input id="psy-widget-question" maxlength="500" autocomplete="off" placeholder="Например: где посмотреть расписание?" required>
+        <button class="psy-widget-mic" type="button" aria-label="Задать вопрос голосом" aria-pressed="false">🎙</button>
         <button type="submit">Спросить</button>
       </form>
+      <p class="psy-widget-voice-status" aria-live="polite"></p>
       <div class="psy-widget-handoff">
         <button class="psy-widget-handoff-open" type="button">Оставить вопрос администратору</button>
         <form class="psy-widget-handoff-form" hidden>
@@ -46,11 +48,18 @@ const closeButton = root.querySelector(".psy-widget-close");
 const messages = root.querySelector(".psy-widget-messages");
 const questionForm = root.querySelector(".psy-widget-form");
 const questionInput = root.querySelector("#psy-widget-question");
+const mic = root.querySelector(".psy-widget-mic");
+const voiceStatus = root.querySelector(".psy-widget-voice-status");
 const handoffOpen = root.querySelector(".psy-widget-handoff-open");
 const handoffForm = root.querySelector(".psy-widget-handoff-form");
 const handoffStatus = root.querySelector(".psy-widget-handoff-status");
 let state = createWidgetState();
 let context = {};
+const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const voiceCapabilities = {
+  recognitionAvailable: Boolean(Recognition),
+  speechAvailable: "speechSynthesis" in window && "SpeechSynthesisUtterance" in window,
+};
 
 function appendMessage(role, text, sources = []) {
   const article = document.createElement("article");
@@ -76,7 +85,7 @@ function appendMessage(role, text, sources = []) {
 }
 
 function render() {
-  const presentation = widgetPresentation(window.innerWidth);
+  const presentation = widgetPresentation(window.innerWidth, voiceCapabilities);
   root.dataset.open = String(state.open);
   root.dataset.mode = presentation.mode;
   root.style.setProperty("--psy-widget-touch-target", `${presentation.minTouchTarget}px`);
@@ -91,12 +100,25 @@ function transition(action) {
   render();
 }
 
-async function ask(question) {
+function setVoiceStatus(message) {
+  voiceStatus.textContent = message;
+}
+
+function speak(text) {
+  if (!voiceCapabilities.speechAvailable) return;
+  window.speechSynthesis.cancel();
+  const utterance = new window.SpeechSynthesisUtterance(text);
+  utterance.lang = "ru-RU";
+  window.speechSynthesis.speak(utterance);
+}
+
+async function ask(question, askedByVoice = false) {
   const value = question.trim();
   if (!value) return;
   appendMessage("user", value);
   const result = routeWidgetQuestion(value, context);
   appendMessage("assistant", result.text, result.sources);
+  if (widgetPresentation(window.innerWidth, voiceCapabilities, askedByVoice).voice.shouldSpeakReply) speak(result.text);
   if (result.sourceKeys?.[0]) context = { lastSourceKey: result.sourceKeys[0] };
   questionInput.value = "";
   questionInput.focus();
@@ -110,7 +132,7 @@ document.addEventListener("keydown", (event) => {
 window.addEventListener("resize", render);
 questionForm.addEventListener("submit", (event) => {
   event.preventDefault();
-  void ask(questionInput.value);
+  void ask(questionInput.value, false);
 });
 root.querySelectorAll("[data-question]").forEach((button) => button.addEventListener("click", () => void ask(button.dataset.question)));
 handoffOpen.addEventListener("click", () => {
@@ -123,6 +145,46 @@ handoffForm.addEventListener("submit", (event) => {
   handoffStatus.textContent = demoHandoffOutcome().message;
   handoffForm.reset();
 });
+
+if (!voiceCapabilities.recognitionAvailable) {
+  mic.addEventListener("click", () => setVoiceStatus(widgetPresentation(window.innerWidth, voiceCapabilities).voice.fallbackMessage));
+} else {
+  const recognition = new Recognition();
+  recognition.lang = "ru-RU";
+  recognition.interimResults = false;
+  let listening = false;
+  const stopListening = () => {
+    listening = false;
+    mic.setAttribute("aria-pressed", "false");
+  };
+
+  recognition.addEventListener("result", (event) => {
+    const heard = event.results[0][0].transcript.trim();
+    if (heard) {
+      setVoiceStatus(voiceCapabilities.speechAvailable ? "" : "Голосовой ответ недоступен в этом браузере. Ответ останется текстовым.");
+      void ask(heard, true);
+    }
+  });
+  recognition.addEventListener("error", (event) => {
+    stopListening();
+    setVoiceStatus(event.error === "not-allowed"
+      ? "Доступ к микрофону не разрешён. Напишите вопрос текстом."
+      : "Не удалось распознать голос. Напишите вопрос текстом.");
+  });
+  recognition.addEventListener("end", stopListening);
+  mic.addEventListener("click", () => {
+    if (listening) {
+      recognition.stop();
+      stopListening();
+      return;
+    }
+    if (voiceCapabilities.speechAvailable) window.speechSynthesis.cancel();
+    setVoiceStatus("Слушаю…");
+    listening = true;
+    mic.setAttribute("aria-pressed", "true");
+    recognition.start();
+  });
+}
 
 appendMessage("assistant", "Здравствуйте. Помогу найти открытую страницу с расписанием, консультациями, программами, клубом или арендой.");
 render();

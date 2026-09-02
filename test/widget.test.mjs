@@ -31,6 +31,22 @@ test("widget uses a desktop side panel and a mobile bottom sheet with a 44px tar
   assert.deepEqual(widgetPresentation(390), { mode: "bottom-sheet", minTouchTarget: 44 });
 });
 
+test("voice keeps text input available and speaks only replies to voice questions", () => {
+  const unavailable = widgetPresentation(390, { recognitionAvailable: false, speechAvailable: false }, false);
+  assert.deepEqual(unavailable.voice, {
+    inputAvailable: false,
+    outputAvailable: false,
+    fallbackMessage: "Голосовой ввод недоступен в этом браузере. Напишите вопрос текстом.",
+    shouldSpeakReply: false,
+  });
+
+  const textQuestion = widgetPresentation(390, { recognitionAvailable: true, speechAvailable: true }, false);
+  assert.equal(textQuestion.voice.shouldSpeakReply, false);
+
+  const voiceQuestion = widgetPresentation(390, { recognitionAvailable: true, speechAvailable: true }, true);
+  assert.equal(voiceQuestion.voice.shouldSpeakReply, true);
+});
+
 test("demo handoff never creates a network request", () => {
   assert.deepEqual(demoHandoffOutcome(), {
     kind: "demo-only",
