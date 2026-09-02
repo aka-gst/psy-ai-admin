@@ -1,81 +1,31 @@
 <!doctype html>
 <html lang="ru">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Локальное безопасное демо AI-администратора." />
-    <title>Psy AI Admin — безопасное демо</title>
-    <link rel="stylesheet" href="./styles.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Локальный пример безопасного AI-администратора поверх сайта.">
+    <title>Psy AI Admin — виджет-демо</title>
+    <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
-    <main class="shell">
-      <header>
-        <p class="eyebrow">Локальное демо · не связано с центром</p>
-        <h1>AI-администратор<br /><span>с человеческой границей</span></h1>
-        <p class="lead">Навигатор по открытым материалам. Он не психолог, не врач и не экстренная служба.</p>
+    <main class="demo-host">
+      <header class="demo-host-hero">
+        <p class="eyebrow">Демонстрационный сайт · не связан с центром</p>
+        <h1>Психологический центр<br><span>без лишнего шума</span></h1>
+        <p>Это спокойный пример страницы, поверх которой подключается помощник. Он не загружает чужой сайт в iframe и не выдаёт демо за официальный сервис.</p>
       </header>
-
-      <section class="notice" aria-label="Ограничения демо">
-        <strong>Безопасность прежде ответа.</strong> В демо нет отправки заявок, хранения переписки или доступа к личному кабинету. Даты, цены и наличие мест не подтверждаются автоматически.
+      <section class="demo-host-card">
+        <p class="eyebrow">Как это встраивается</p>
+        <h2>Один модуль поверх существующей страницы</h2>
+        <p>Помощник открывается справа на компьютере и нижним листом на телефоне. До первого нажатия он не показывает чат или форму.</p>
+        <code>&lt;script type="module" src="./psy-widget.js"&gt;&lt;/script&gt;</code>
       </section>
-      <section class="action-choices" aria-label="Выберите способ задать вопрос">
-        <button id="assistant-choice" class="action-choice primary" type="button"><span>Получить ответ сейчас</span>Спросить помощника по открытым страницам</button>
-        <button id="admin-choice" class="action-choice" type="button"><span>Задать вопрос администратору</span>Оставить тему и удобный способ связи</button>
-      </section>
-
-      <section class="chat" aria-label="Демонстрационный чат">
-        <div class="chat-head"><span>Вопрос помощнику</span><button id="reset-chat" type="button">Начать новый разговор</button></div>
-        <div id="messages" class="messages" aria-live="polite">
-          <article class="message assistant">
-            <p>Здравствуйте. Могу помочь найти открытую страницу с программами, расписанием, консультациями, клубом или арендой. О чём хотите узнать?</p>
-          </article>
-        </div>
-        <div class="suggestions" aria-label="Примеры вопросов">
-          <button type="button" data-question="Какие мероприятия ближайшие?">Ближайшие мероприятия</button>
-          <button type="button" data-question="Хочу консультацию онлайн">Консультация онлайн</button>
-          <button type="button" data-question="Мне нужен зал на 20 человек">Аренда зала</button>
-          <button type="button" data-question="У меня панические атаки, что делать?">Панические атаки: куда обратиться?</button>
-        </div>
-        <form id="chat-form">
-          <label class="sr-only" for="question">Ваш вопрос</label>
-          <input id="question" name="question" autocomplete="off" maxlength="500" placeholder="Например: «Где посмотреть расписание?»" required />
-          <button type="submit">Спросить помощника</button>
-        </form>
-        <div class="handoff">
-          <button id="handoff-open" class="handoff-open" type="button">Задать вопрос администратору</button>
-          <form id="handoff-form" class="handoff-form" hidden>
-            <p><strong>Передача вопроса</strong><br />Укажите только способ связи и тему. Подробности здоровья, реквизиты и пароли не нужны.</p>
-            <label>Тема
-              <select name="topic" required>
-                <option value="">Выберите тему</option>
-                <option>Консультация</option>
-                <option>Мероприятие или обучение</option>
-                <option>Психологический клуб</option>
-                <option>Аренда зала</option>
-                <option>Другой организационный вопрос</option>
-              </select>
-            </label>
-            <label>Как к вам обращаться
-              <input name="name" maxlength="80" autocomplete="name" placeholder="Например, Анна" required />
-            </label>
-            <label>Телефон или e-mail
-              <input name="contact" maxlength="120" autocomplete="email" placeholder="Один удобный способ связи" required />
-            </label>
-            <label class="consent"><input name="consent" type="checkbox" required /> Я согласен(на) передать эти данные администратору для ответа на мой вопрос.</label>
-            <button type="submit">Подготовить передачу</button>
-            <p id="handoff-status" class="handoff-status" aria-live="polite"></p>
-          </form>
-        </div>
-      </section>
-
-      <section class="principles">
-        <article><b>Источник</b><span>Факты — только со ссылкой на открытый материал.</span></article>
-        <article><b>Не знаю</b><span>При конфликте или устаревании — честная передача человеку.</span></article>
-        <article><b>Минимум данных</b><span>Никаких диагнозов, подробностей здоровья, паролей и карт.</span></article>
+      <section class="demo-host-columns">
+        <article><b>Открытые источники</b><span>Расписание, консультации, программы и контакты ведут только на утверждённые страницы.</span></article>
+        <article><b>Человеческая граница</b><span>Без диагнозов, терапии, оплаты в чате или реальной отправки заявок.</span></article>
+        <article><b>Честный следующий шаг</b><span>Когда факта нет или он устарел, помощник направляет к администратору.</span></article>
       </section>
     </main>
-    <script defer src="./public-content-index.js"></script>
-    <script defer src="./safe-router.js"></script>
-    <script defer src="./app.js"></script>
+    <script type="module" src="./psy-widget.js"></script>
   </body>
 </html>
