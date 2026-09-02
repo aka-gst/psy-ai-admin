@@ -46,3 +46,10 @@ test("widget keeps the crisis boundary from the approved router", () => {
   assert.match(result.text, /экстренн/i);
   assert.match(result.text, /близк/i);
 });
+
+test("widget crisis response does not offer ordinary site navigation", () => {
+  const result = routeWidgetQuestion("У меня мысли о самоубийстве");
+
+  assert.deepEqual(result.sources, []);
+  assert.doesNotMatch(result.text, /ссылк[ае]/i);
+});

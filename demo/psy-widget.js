@@ -4,7 +4,7 @@ import { createWidgetState, demoHandoffOutcome, reduceWidgetState, routeWidgetQu
 const mount = document.createElement("div");
 mount.innerHTML = `
   <section class="psy-widget" data-psy-widget data-open="false" aria-label="Помощник сайта">
-    <button class="psy-widget-trigger" type="button" aria-controls="psy-widget-panel" aria-expanded="false">
+    <button class="psy-widget-trigger" type="button" aria-label="Спросить помощника" aria-controls="psy-widget-panel" aria-expanded="false">
       <span aria-hidden="true">✦</span><span>Спросить помощника</span>
     </button>
     <aside class="psy-widget-panel" id="psy-widget-panel" aria-label="AI-администратор" hidden>
@@ -13,6 +13,7 @@ mount.innerHTML = `
         <button class="psy-widget-close" type="button" aria-label="Закрыть помощника">×</button>
       </header>
       <p class="psy-widget-boundary">Демо не связано с центром, не хранит переписку и не заменяет психолога, врача или экстренную службу.</p>
+      <p class="psy-widget-source-boundary">Ответы ведут только к подтверждённым открытым страницам «Орион-С».</p>
       <div class="psy-widget-messages" aria-live="polite"></div>
       <div class="psy-widget-suggestions" aria-label="Примеры вопросов">
         <button type="button" data-question="Какие мероприятия ближайшие?">Расписание</button>

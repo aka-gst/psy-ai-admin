@@ -46,10 +46,14 @@ test("published contact facts appear together with the official page", () => {
   assert.equal(result.sources[0].url, "https://orion-center.ru/");
 });
 
-test("all 30 product evaluation questions lead to their expected page", () => {
+test("all non-crisis product questions lead to their expected page while crisis avoids ordinary navigation", () => {
   assert.equal(evaluationCases.length, 30);
   for (const [question, expectedPath] of evaluationCases) {
     const result = routeQuestion(question);
+    if (result.kind === "crisis") {
+      assert.deepEqual(result.sources, [], question);
+      continue;
+    }
     assert.ok(result.sources.length, question);
     assert.ok(result.sources[0].url.endsWith(expectedPath), question);
   }

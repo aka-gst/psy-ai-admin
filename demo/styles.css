@@ -70,6 +70,7 @@ button[type="submit"] { border: 0; border-radius: 9px; padding: 12px 17px; backg
 .psy-widget-head span { margin-top: 3px; color: #6a6378; font-size: .82rem; }
 .psy-widget-close { min-width: var(--psy-widget-touch-target); min-height: var(--psy-widget-touch-target); border: 1px solid #d7cfea; border-radius: 50%; background: #fff; color: #4f3b80; font-size: 1.5rem; line-height: 1; cursor: pointer; }
 .psy-widget-boundary { margin: 0; padding: 13px 18px; background: #fff3e9; color: #563a30; font-size: .86rem; line-height: 1.45; }
+.psy-widget-source-boundary { margin: 0; padding: 10px 18px; border-bottom: 1px solid #eeeaf5; background: #f8f5ff; color: #4d3d70; font-size: .82rem; font-weight: 700; line-height: 1.4; }
 .psy-widget-messages { display: grid; gap: 10px; min-height: 126px; padding: 16px; }
 .psy-widget-message { max-width: 92%; padding: 11px 13px; border-radius: 13px; line-height: 1.42; }
 .psy-widget-message p { margin: 0; }
