@@ -11,7 +11,7 @@ const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let lastSourceKey = '';
 let listening = false;
 
-fetch('/api/config').then((response) => response.json()).then((config) => {
+fetch('api/config').then((response) => response.json()).then((config) => {
   document.querySelector('#emergency-notice').textContent = config.emergencyNotice;
 }).catch(() => {});
 
@@ -37,7 +37,7 @@ const speak = (text) => {
 };
 
 async function ask(question) {
-  const response = await fetch('/api/ask', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ question, lastSourceKey }) });
+  const response = await fetch('api/ask', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ question, lastSourceKey }) });
   const data = await response.json();
   answer.hidden = false;
   if (!response.ok) { answer.className = 'answer'; answer.textContent = data.error; return; }

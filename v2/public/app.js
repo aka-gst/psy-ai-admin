@@ -41,7 +41,7 @@ let lastSourceKey = '';
 askForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   const question = document.querySelector('#question');
-  const response = await fetch('/api/ask', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ question: question.value, lastSourceKey }) });
+  const response = await fetch('api/ask', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ question: question.value, lastSourceKey }) });
   const data = await response.json();
   answer.hidden = false;
   if (!response.ok) { answer.className = 'answer'; answer.textContent = data.error; return; }
