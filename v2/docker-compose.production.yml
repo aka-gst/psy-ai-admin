@@ -1,6 +1,8 @@
 services:
   psy-admin-booking:
-    build: .
+    build:
+      context: ..
+      dockerfile: v2/Dockerfile
     restart: unless-stopped
     env_file: .env
     environment:
