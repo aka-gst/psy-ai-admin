@@ -1,0 +1,21 @@
+services:
+  psy-admin-booking:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      HOST: 0.0.0.0
+      PORT: 4180
+      DATABASE_PATH: /data/booking.sqlite
+      COOKIE_PATH: /psy-admin/booking/
+    volumes:
+      - psy-admin-booking-data:/data
+    networks:
+      - zakriva-net
+
+volumes:
+  psy-admin-booking-data:
+
+networks:
+  zakriva-net:
+    external: true

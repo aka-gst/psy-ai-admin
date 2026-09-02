@@ -131,6 +131,20 @@ export function createBooking(db, input, publicCode, now = new Date().toISOStrin
   }
 }
 
+/** Remove names and contacts after the agreed retention period while preserving
+ * non-personal schedule state. Safe to run on every process start. */
+export function purgeExpiredPersonalData(db, now = new Date(), retentionDays = 30) {
+  const cutoff = new Date(now.getTime() - retentionDays * 24 * 60 * 60 * 1000).toISOString();
+  const result = db.prepare(`
+    UPDATE bookings
+    SET client_name = '[удалено по сроку хранения]',
+        contact = '[удалено по сроку хранения]'
+    WHERE created_at < ?
+      AND (client_name != '[удалено по сроку хранения]' OR contact != '[удалено по сроку хранения]')
+  `).run(cutoff);
+  return Number(result.changes);
+}
+
 export function listBookings(db) {
   return db.prepare(`
     SELECT bookings.id, bookings.public_code AS publicCode, bookings.client_name AS clientName,

@@ -3,7 +3,7 @@ import { randomBytes } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { createBooking, createSlot, createSpecialist, decideBooking, deleteAvailableSlot, listAvailableSlots, listBookings, listManagedSlots, listSpecialists, openDatabase, seedSchedule, setSpecialistActive } from "./lib/database.mjs";
+import { createBooking, createSlot, createSpecialist, decideBooking, deleteAvailableSlot, listAvailableSlots, listBookings, listManagedSlots, listSpecialists, openDatabase, purgeExpiredPersonalData, seedSchedule, setSpecialistActive } from "./lib/database.mjs";
 import { clientKey, createLoginGuard, createSession, isSecureRequest, readCookie, safeEqual, sameOrigin, verifySession } from "./lib/security.mjs";
 import { clientFromEnvironment, contextForSource, createAssistant, createComposer, createCrisisClassifier, createTopicSelector, topicsFromCatalog } from "../engine/index.mjs";
 
@@ -11,6 +11,7 @@ const root = fileURLToPath(new URL(".", import.meta.url));
 const config = JSON.parse(await readFile(join(root, "config/center.json"), "utf8"));
 const db = openDatabase(process.env.DATABASE_PATH || join(root, "data/booking.sqlite"));
 seedSchedule(db, config);
+purgeExpiredPersonalData(db);
 
 // Тот же движок, что и у публичной витрины: границы безопасности общие,
 // различается только каталог арендатора.
@@ -183,7 +184,8 @@ export const server = createServer(async (request, response) => {
       }
       loginGuard.reset(key);
       const token = createSession(process.env.SESSION_SECRET || "");
-      const flags = ["HttpOnly", "SameSite=Strict", "Path=/", "Max-Age=28800"];
+      const cookiePath = process.env.COOKIE_PATH || "/";
+      const flags = ["HttpOnly", "SameSite=Strict", `Path=${cookiePath}`, "Max-Age=28800"];
       if (isSecureRequest(request)) flags.push("Secure");
       return json(response, 200, { ok: true }, { "set-cookie": `psy_admin_session=${encodeURIComponent(token)}; ${flags.join("; ")}` });
     }

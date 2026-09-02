@@ -3,7 +3,7 @@ import { mkdtempSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import test from "node:test";
-import { createBooking, createSlot, createSpecialist, decideBooking, deleteAvailableSlot, listAvailableSlots, listBookings, listManagedSlots, listSpecialists, openDatabase, seedSchedule, setSpecialistActive } from "../lib/database.mjs";
+import { createBooking, createSlot, createSpecialist, decideBooking, deleteAvailableSlot, listAvailableSlots, listBookings, listManagedSlots, listSpecialists, openDatabase, purgeExpiredPersonalData, seedSchedule, setSpecialistActive } from "../lib/database.mjs";
 
 const config = { specialists: [{ id: "one", name: "Специалист", description: "Тест" }], slotHours: ["10:00"] };
 
@@ -39,4 +39,17 @@ test("manager controls specialists and only available slots can be deleted", () 
   assert.equal(listManagedSlots(db).some((item) => item.id === slotId), false);
   setSpecialistActive(db, "two", false);
   assert.equal(listSpecialists(db).find((item) => item.id === "two").active, false);
+});
+
+test("retention removes personal data after 30 days but keeps booking state", () => {
+  const db = openDatabase(join(mkdtempSync(join(tmpdir(), "psy-v2-")), "test.sqlite"));
+  seedSchedule(db, config, new Date("2026-06-01T00:00:00Z"));
+  const slot = listAvailableSlots(db)[0];
+  createBooking(db, { slotId: slot.id, clientName: "Тестовый клиент", contact: "test@example.org", contactType: "email" }, "expired-code", "2026-07-01T10:00:00.000Z");
+  const changed = purgeExpiredPersonalData(db, new Date("2026-09-02T10:00:00.000Z"));
+  assert.equal(changed, 1);
+  const booking = db.prepare("SELECT client_name, contact, status FROM bookings WHERE public_code = ?").get("expired-code");
+  assert.equal(booking.client_name, "[удалено по сроку хранения]");
+  assert.equal(booking.contact, "[удалено по сроку хранения]");
+  assert.equal(booking.status, "pending");
 });
