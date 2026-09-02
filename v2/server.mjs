@@ -3,13 +3,14 @@ import { randomBytes } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { createBooking, createSlot, createSpecialist, decideBooking, deleteAvailableSlot, listAvailableSlots, listBookings, listManagedSlots, listSpecialists, openDatabase, seedSchedule, setSpecialistActive } from "./lib/database.mjs";
+import { createBooking, createSlot, createSpecialist, decideBooking, deleteAvailableSlot, listAvailableSlots, listBookings, listManagedSlots, listSpecialists, openDatabase, purgeExpiredPersonalData, seedSchedule, setSpecialistActive } from "./lib/database.mjs";
 import { createSession, readCookie, sameOrigin, verifySession } from "./lib/security.mjs";
 
 const root = fileURLToPath(new URL(".", import.meta.url));
 const config = JSON.parse(await readFile(join(root, "config/center.json"), "utf8"));
 const db = openDatabase(process.env.DATABASE_PATH || join(root, "data/booking.sqlite"));
 seedSchedule(db, config);
+purgeExpiredPersonalData(db);
 
 const json = (response, status, body, headers = {}) => {
   response.writeHead(status, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...headers });
@@ -66,7 +67,8 @@ export const server = createServer(async (request, response) => {
       const body = await parseBody(request);
       if (body.password !== process.env.ADMIN_PASSWORD) return json(response, 401, { error: "Неверный пароль." });
       const token = createSession(process.env.SESSION_SECRET || "");
-      return json(response, 200, { ok: true }, { "set-cookie": `psy_admin_session=${encodeURIComponent(token)}; HttpOnly; SameSite=Strict; Path=/; Max-Age=28800` });
+      const cookiePath = process.env.COOKIE_PATH || "/";
+      return json(response, 200, { ok: true }, { "set-cookie": `psy_admin_session=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=Strict; Path=${cookiePath}; Max-Age=28800` });
     }
     if (request.method === "GET" && url.pathname === "/api/admin/bookings") {
       if (!isAdmin(request)) return json(response, 401, { error: "Требуется вход." });
