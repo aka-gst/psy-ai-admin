@@ -110,15 +110,9 @@ root.innerHTML = `
   /* Нечётная последняя занимает ряд целиком, чтобы не висел огрызок. */
   .quick button:last-child:nth-child(odd) { grid-column: 1 / -1; }
   .quick button:hover { border-color: #7d5fc6; }
-  .all { background: #f7f5fb; border-top: 1px solid #e6e1ef; }
-  .all summary { padding: 10px 14px; font-size: 12.5px; font-weight: 600; color: #45327a; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; }
-  .all summary::-webkit-details-marker { display: none; }
-  .all summary::after { content: "▾"; opacity: .55; }
-  .all[open] summary::after { content: "▴"; }
-  .all .list { max-height: 220px; overflow-y: auto; padding: 0 12px 12px; }
-  .all h4 { margin: 10px 0 5px; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #8a7fa0; }
-  .all .q { display: block; width: 100%; margin-bottom: 4px; padding: 7px 10px; border: 1px solid #ddd4ee; border-radius: 8px; background: #fff; color: #3b2d63; font-size: 12.5px; text-align: left; cursor: pointer; }
-  .all .q:hover { border-color: #7d5fc6; background: #f8f4ff; }
+  .all { display: grid; gap: 5px; padding: 9px 14px 11px; background: #f7f5fb; border-top: 1px solid #e6e1ef; color: #45327a; font-size: 12.5px; font-weight: 600; }
+  .all select { width: 100%; min-height: 38px; padding: 0 10px; border: 1px solid #d8cdec; border-radius: 9px; background: #fff; color: #3b2d63; font: inherit; font-weight: 400; cursor: pointer; }
+  .all select:focus-visible { outline: 2px solid #7452bd; outline-offset: 2px; }
   form { display: flex; gap: 8px; padding: 12px 14px; border-top: 1px solid #e6e1ef; }
   input { flex: 1; min-width: 0; min-height: 42px; padding: 0 12px; border: 1px solid #d2c9e2; border-radius: 10px; font-size: 14.5px; }
   input:focus { outline: 2px solid #7452bd; outline-offset: -1px; }
@@ -159,10 +153,12 @@ root.innerHTML = `
     <span><b>Свободный ответ</b><small>помощник формулирует сам. Выключите, чтобы увидеть заготовку</small></span>
     <input type="checkbox" role="switch" aria-label="Свободный ответ" checked>
   </label>
-  <details class="all">
-    <summary><span></span></summary>
-    <div class="list"></div>
-  </details>
+  <label class="all" for="psy-prepared-question">
+    <span>Проверочный вопрос</span>
+    <select id="psy-prepared-question" aria-label="Выбрать один из 60 проверочных вопросов">
+      <option value="">Выбрать вопрос…</option>
+    </select>
+  </label>
   <form>
     <input type="text" placeholder="Например: свободен ли зал в субботу?" aria-label="Вопрос помощнику" required>
     <button type="button" class="mic" aria-label="Спросить голосом" title="Речь распознаёт браузер: звук обрабатывается его службой распознавания" aria-pressed="false" hidden>🎤</button>
@@ -267,30 +263,31 @@ for (const question of QUICK) {
   quick.append(button);
 }
 
-// Полный набор проверочных вопросов — отдельным раскрытием, а не на виду.
-// Категории подписаны намеренно: кризисные сценарии не должны открываться
-// случайно на разговоре с центром.
-const all = root.querySelector(".all");
+// Полный набор остаётся доступен в компактном нативном списке. Группы не дают
+// смешать кризисные сценарии с обычными вопросами, а выбор сразу запускает
+// выбранную проверку — без второго крупного полотна в панели.
+const preparedSelect = root.querySelector("#psy-prepared-question");
 const groups = new Map();
 for (const item of preparedQuestions) {
   if (!groups.has(item.category)) groups.set(item.category, []);
   groups.get(item.category).push(item.question);
 }
-root.querySelector(".all summary span").textContent = `Все проверочные вопросы · ${preparedQuestions.length}`;
-const list = root.querySelector(".all .list");
 for (const [category, questions] of groups) {
-  const title = document.createElement("h4");
-  title.textContent = category;
-  list.append(title);
+  const group = document.createElement("optgroup");
+  group.label = category;
   for (const question of questions) {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "q";
-    button.textContent = question;
-    button.addEventListener("click", () => { all.removeAttribute("open"); void send(question); });
-    list.append(button);
+    const option = document.createElement("option");
+    option.value = question;
+    option.textContent = question;
+    group.append(option);
   }
+  preparedSelect.append(group);
 }
+preparedSelect.addEventListener("change", () => {
+  if (!preparedSelect.value) return;
+  void send(preparedSelect.value);
+  preparedSelect.value = "";
+});
 
 launcher.addEventListener("click", () => {
   host.setAttribute("open", "");
