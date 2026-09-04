@@ -1,0 +1,24 @@
+services:
+  psy-admin-demo:
+    build:
+      context: ..
+      dockerfile: v2/Dockerfile
+    restart: unless-stopped
+    env_file: .env.demo
+    environment:
+      HOST: 0.0.0.0
+      PORT: 4180
+      DATABASE_PATH: /data/booking.sqlite
+      COOKIE_PATH: /psy-admin/demo/
+      DEMO_MODE: "1"
+    volumes:
+      - psy-admin-demo-data:/data
+    networks:
+      - zakriva-net
+
+volumes:
+  psy-admin-demo-data:
+
+networks:
+  zakriva-net:
+    external: true

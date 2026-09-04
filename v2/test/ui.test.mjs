@@ -35,3 +35,17 @@ test("booking and voice UI keep assets and API calls inside the deployed subpath
     }
   }
 });
+
+test("demo manager UI exposes synthetic lead controls without production wording", async () => {
+  const [html, script] = await Promise.all([
+    readFile(new URL("../public/admin.html", import.meta.url), "utf8"),
+    readFile(new URL("../public/admin.js", import.meta.url), "utf8"),
+  ]);
+  assert.match(html, /ПАНЕЛЬ МЕНЕДЖЕРА · ДЕМО/);
+  assert.match(html, /Добавить вручную/);
+  assert.match(html, /Можно оставить пустым/);
+  assert.match(script, /draggable="true"/);
+  assert.match(script, /data-drop-status/);
+  assert.match(script, /method: 'PATCH'/);
+  assert.match(script, /method: 'DELETE'/);
+});
