@@ -13,6 +13,10 @@ import { preparedQuestions } from "../hosted-demo/app/content.js";
 
 const script = document.currentScript ?? document.querySelector("script[data-psy-widget]");
 const endpoint = script?.dataset?.endpoint ?? "";
+// Пока помощник стоит на демонстрационной копии Orion, запись ведёт в уже
+// работающую форму Psy Admin. На новом сайте адрес меняется атрибутом
+// data-booking-url, а не правкой виджета.
+const bookingUrl = script?.dataset?.bookingUrl ?? "/psy-admin/booking/";
 const local = createAssistant(catalog);
 
 const QUICK = [
@@ -110,6 +114,10 @@ root.innerHTML = `
   /* Нечётная последняя занимает ряд целиком, чтобы не висел огрызок. */
   .quick button:last-child:nth-child(odd) { grid-column: 1 / -1; }
   .quick button:hover { border-color: #7d5fc6; }
+  .booking { padding: 0 14px 12px; background: #f7f5fb; }
+  .booking a { display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 14px; border-radius: 11px; background: #4a3585; color: #fff; font-size: 14px; font-weight: 700; text-decoration: none; box-shadow: 0 6px 16px rgba(74,53,133,.2); }
+  .booking a:hover { background: #3d2b72; }
+  .booking a:focus-visible { outline: 2px solid #7452bd; outline-offset: 3px; }
   .all { display: grid; gap: 5px; padding: 9px 14px 11px; background: #f7f5fb; border-top: 1px solid #e6e1ef; color: #45327a; font-size: 12.5px; font-weight: 600; }
   .all select { width: 100%; min-height: 38px; padding: 0 10px; border: 1px solid #d8cdec; border-radius: 9px; background: #fff; color: #3b2d63; font: inherit; font-weight: 400; cursor: pointer; }
   .all select:focus-visible { outline: 2px solid #7452bd; outline-offset: 2px; }
@@ -149,6 +157,7 @@ root.innerHTML = `
   </header>
   <div class="log" role="log" aria-live="polite"></div>
   <div class="quick"></div>
+  <div class="booking"><a href="${bookingUrl}">Записаться к специалисту →</a></div>
   <label class="mode" hidden>
     <span><b>Свободный ответ</b><small>помощник формулирует сам. Выключите, чтобы увидеть заготовку</small></span>
     <input type="checkbox" role="switch" aria-label="Свободный ответ" checked>

@@ -3,7 +3,7 @@ import { randomBytes } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { createBooking, createSlot, createSpecialist, decideBooking, deleteAvailableSlot, listAvailableSlots, listBookings, listManagedSlots, listSpecialists, openDatabase, purgeExpiredPersonalData, seedSchedule, setSpecialistActive } from "./lib/database.mjs";
+import { createBooking, createInquiry, createSlot, createSpecialist, decideBooking, deleteAvailableSlot, deleteBooking, deleteInquiry, listAvailableSlots, listBookings, listInquiries, listManagedSlots, listSpecialists, openDatabase, purgeExpiredPersonalData, seedDemoData, seedSchedule, setSpecialistActive, updateBooking, updateInquiry } from "./lib/database.mjs";
 import { clientKey, createLoginGuard, createSession, isSecureRequest, readCookie, safeEqual, sameOrigin, verifySession } from "./lib/security.mjs";
 import { clientFromEnvironment, contextForSource, createAssistant, createComposer, createCrisisClassifier, createTopicSelector, topicsFromCatalog } from "../engine/index.mjs";
 
@@ -11,6 +11,7 @@ const root = fileURLToPath(new URL(".", import.meta.url));
 const config = JSON.parse(await readFile(join(root, "config/center.json"), "utf8"));
 const db = openDatabase(process.env.DATABASE_PATH || join(root, "data/booking.sqlite"));
 seedSchedule(db, config);
+if (process.env.DEMO_MODE === "1") seedDemoData(db);
 purgeExpiredPersonalData(db);
 
 // Тот же движок, что и у публичной витрины: границы безопасности общие,
@@ -86,6 +87,21 @@ const parseBody = async (request) => {
 };
 
 const clean = (value, max) => typeof value === "string" ? value.trim().slice(0, max) : "";
+const inquiryKinds = ["hall_rental", "seminar", "callback", "email"];
+const inquiryInput = (body) => ({
+  kind: inquiryKinds.includes(body.kind) ? body.kind : "callback",
+  clientName: clean(body.clientName, 80),
+  contact: clean(body.contact, 160),
+  contactType: body.contactType,
+  requestedFor: clean(body.requestedFor, 100),
+  details: clean(body.details, 400),
+  status: ["pending", "confirmed", "rejected"].includes(body.status) ? body.status : "pending",
+});
+const bookingInput = (body) => ({
+  slotId: Number(body.slotId), clientName: clean(body.clientName, 80), contact: clean(body.contact, 160),
+  contactType: body.contactType, status: ["pending", "confirmed", "rejected"].includes(body.status) ? body.status : "pending",
+});
+const validContact = (input) => input.contact.length >= 5 && ["phone", "email"].includes(input.contactType);
 const isAdmin = (request) => verifySession(readCookie(request, "psy_admin_session"), process.env.SESSION_SECRET || "");
 
 // Пароль менеджера один и общий, поэтому перебор — самый дешёвый способ войти.
@@ -161,8 +177,8 @@ export const server = createServer(async (request, response) => {
     }
     if (request.method === "POST" && url.pathname === "/api/bookings") {
       const body = await parseBody(request);
-      const input = { slotId: Number(body.slotId), clientName: clean(body.clientName, 80), contact: clean(body.contact, 160), contactType: body.contactType };
-      if (!input.slotId || input.clientName.length < 2 || !["phone", "email"].includes(input.contactType) || input.contact.length < 5 || body.consent !== true) {
+      const input = bookingInput(body);
+      if (!input.slotId || input.clientName.length < 2 || !validContact(input) || body.consent !== true) {
         return json(response, 400, { error: "Проверьте слот, имя, контакт и согласие." });
       }
       const publicCode = randomBytes(6).toString("hex");
@@ -193,6 +209,10 @@ export const server = createServer(async (request, response) => {
       if (!isAdmin(request)) return json(response, 401, { error: "Требуется вход." });
       return json(response, 200, { bookings: listBookings(db) });
     }
+    if (request.method === "GET" && url.pathname === "/api/admin/inquiries") {
+      if (!isAdmin(request)) return json(response, 401, { error: "Требуется вход." });
+      return json(response, 200, { inquiries: listInquiries(db) });
+    }
     if (request.method === "GET" && url.pathname === "/api/admin/schedule") {
       if (!isAdmin(request)) return json(response, 401, { error: "Требуется вход." });
       return json(response, 200, { specialists: listSpecialists(db), slots: listManagedSlots(db) });
@@ -205,6 +225,13 @@ export const server = createServer(async (request, response) => {
       if (name.length < 2) return json(response, 400, { error: "Укажите имя специалиста." });
       const id = `specialist-${randomBytes(5).toString("hex")}`;
       createSpecialist(db, { id, name, description });
+      return json(response, 201, { id });
+    }
+    if (request.method === "POST" && url.pathname === "/api/admin/inquiries") {
+      if (!isAdmin(request) || !sameOrigin(request)) return json(response, 401, { error: "Требуется вход." });
+      const input = inquiryInput(await parseBody(request));
+      if (!validContact(input)) return json(response, 400, { error: "Укажите телефон или e-mail." });
+      const id = createInquiry(db, input, randomBytes(6).toString("hex"));
       return json(response, 201, { id });
     }
     const specialistMatch = url.pathname.match(/^\/api\/admin\/specialists\/([a-zA-Z0-9-]+)$/);
@@ -238,10 +265,40 @@ export const server = createServer(async (request, response) => {
       decideBooking(db, Number(decisionMatch[1]), body.decision);
       return json(response, 200, { ok: true, notification: "queued" });
     }
+    const bookingMatch = url.pathname.match(/^\/api\/admin\/bookings\/(\d+)$/);
+    if (request.method === "PATCH" && bookingMatch) {
+      if (!isAdmin(request) || !sameOrigin(request)) return json(response, 401, { error: "Требуется вход." });
+      const input = bookingInput(await parseBody(request));
+      if (!input.slotId || input.clientName.length < 2 || !validContact(input)) return json(response, 400, { error: "Проверьте время, имя и контакт." });
+      updateBooking(db, Number(bookingMatch[1]), input);
+      return json(response, 200, { ok: true });
+    }
+    if (request.method === "DELETE" && bookingMatch) {
+      if (!isAdmin(request) || !sameOrigin(request)) return json(response, 401, { error: "Требуется вход." });
+      deleteBooking(db, Number(bookingMatch[1]));
+      return json(response, 200, { ok: true });
+    }
+    const inquiryMatch = url.pathname.match(/^\/api\/admin\/inquiries\/(\d+)$/);
+    if (request.method === "PATCH" && inquiryMatch) {
+      if (!isAdmin(request) || !sameOrigin(request)) return json(response, 401, { error: "Требуется вход." });
+      const input = inquiryInput(await parseBody(request));
+      if (!validContact(input)) return json(response, 400, { error: "Укажите телефон или e-mail." });
+      updateInquiry(db, Number(inquiryMatch[1]), input);
+      return json(response, 200, { ok: true });
+    }
+    if (request.method === "DELETE" && inquiryMatch) {
+      if (!isAdmin(request) || !sameOrigin(request)) return json(response, 401, { error: "Требуется вход." });
+      deleteInquiry(db, Number(inquiryMatch[1]));
+      return json(response, 200, { ok: true });
+    }
+    if (request.method === "GET" && url.pathname === "/favicon.ico") {
+      response.writeHead(204, { "cache-control": "public, max-age=86400" });
+      return response.end();
+    }
     if (request.method === "GET" && await serveStatic(url.pathname, response)) return;
     json(response, 404, { error: "Не найдено." });
   } catch (error) {
-    const known = ["slot_unavailable", "booking_not_pending", "invalid_decision", "specialist_not_found", "specialist_inactive", "slot_not_deletable"];
+    const known = ["slot_unavailable", "booking_not_pending", "booking_not_found", "inquiry_not_found", "invalid_decision", "specialist_not_found", "specialist_inactive", "slot_not_deletable"];
     json(response, known.includes(error.message) ? 409 : 500, { error: known.includes(error.message) ? "Состояние записи уже изменилось." : "Внутренняя ошибка." });
   }
 });
